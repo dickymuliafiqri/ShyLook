@@ -1,0 +1,8 @@
+.idea/
+node_modules/
+log/
+downloads/
+app/
+
+queue.json
+server.json
