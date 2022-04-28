@@ -1,1 +1,1 @@
-shy: npm start
+shy: sudo sh ./dl.sh && npm start
