@@ -2,6 +2,7 @@ const ytdl = require("youtube-dl-exec");
 const ffmpeg = require("@ffmpeg-installer/ffmpeg");
 const prettyMs = require("pretty-ms");
 
+import YTDlpWrap from "yt-dlp-wrap";
 import {
   mkdirSync,
   existsSync,
@@ -125,6 +126,13 @@ export class Shy {
     }, 21600000);
   }
 }
+
+// Download yt-dlp
+(async () => {
+  await YTDlpWrap.downloadFromGithub();
+
+  ytdl.create("./yt-dlp");
+})();
 
 (() => {
   import("./tele");
