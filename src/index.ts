@@ -2,7 +2,6 @@ const ytdl = require("youtube-dl-exec");
 const ffmpeg = require("@ffmpeg-installer/ffmpeg");
 const prettyMs = require("pretty-ms");
 
-import YTDlpWrap from "yt-dlp-wrap";
 import {
   mkdirSync,
   existsSync,
@@ -16,6 +15,8 @@ import { startServer } from "./server";
 config({
   path: "./config.env",
 });
+
+ytdl.create("./bin/youtube-dlp");
 
 if (!existsSync("./downloads")) mkdirSync("./downloads");
 if (!existsSync("./log")) mkdirSync("./log");
@@ -126,13 +127,6 @@ export class Shy {
     }, 21600000);
   }
 }
-
-// Download yt-dlp
-(async () => {
-  await YTDlpWrap.downloadFromGithub();
-
-  ytdl.create("./yt-dlp");
-})();
 
 (() => {
   import("./tele");
