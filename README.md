@@ -11,7 +11,7 @@ Currently, I code this bot specifically to be hosted on `railway`
 - [x] Audio downloader
 - [ ] ~~Direct video downloader~~ (No need to mirror since it __direct__)
 - [x] Support telegram bot
-- [ ] Support WA (Not bot, using user account)
+- [x] Support WA (Not bot, using user account)
 - [ ] ~~Advance web media player (video.js)~~ (Default video player just more than enough)
 
 

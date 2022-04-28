@@ -37,13 +37,24 @@ export class Shy {
       });
       metadata["duration"] = prettyMs(Number(metadata["duration"] || 0) * 1000);
 
+      for (let i = metadata["thumbnails"].length - 1; i >= 0; i--) {
+        if (i <= 0)
+          metadata["thumbnail"] =
+            "https://bitsofco.de/content/images/2018/12/broken-1.png";
+        if (!metadata["thumbnails"][i]["url"].match(/\.(webp)/i)) {
+          metadata["thumbnail"] =
+            metadata["thumbnails"][i]["url"].match(/(.+\.\w+)/i)[0];
+          break;
+        }
+      }
+
       return metadata;
     } catch (e: any) {
       return e.message;
     }
   }
 
-  private writeLog(subprocess: any, fileId: number) {
+  private writeLog(subprocess: any, fileId: number | string) {
     subprocess.stdout.on("data", (data: string) => {
       writeFileSync(
         `./log/${fileId}.json`,
@@ -87,7 +98,12 @@ export class Shy {
     });
   }
 
-  getVideo(link: string, quality: string, fileName: string, id: number) {
+  getVideo(
+    link: string,
+    quality: string,
+    fileName: string,
+    id: number | string
+  ) {
     const output: string = `./downloads/${fileName}.mp4`;
     const subprocess = ytdl.exec(link, {
       noCheckCertificate: true,
@@ -130,6 +146,7 @@ export class Shy {
 
 (() => {
   import("./tele");
+  import("./wa");
 
   startServer();
 })();

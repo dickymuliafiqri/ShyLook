@@ -206,17 +206,6 @@ bot.on("text", async (ctx) => {
       : "-"
   }`;
 
-  for (let i = metadata["thumbnails"].length - 1; i >= 0; i--) {
-    if (i <= 0)
-      metadata["thumbnail"] =
-        "https://bitsofco.de/content/images/2018/12/broken-1.png";
-    if (!metadata["thumbnails"][i]["url"].match(/\.(webp)/i)) {
-      metadata["thumbnail"] =
-        metadata["thumbnails"][i]["url"].match(/(.+\.\w+)/i)[0];
-      break;
-    }
-  }
-
   await ctx
     .replyWithPhoto(metadata["thumbnail"], {
       caption,
@@ -325,7 +314,7 @@ bot.action("cancel", (ctx) => {
 });
 
 bot.launch().then(() => {
-  console.log("[TG] Bot started...");
+  console.log("[TG] READY");
 });
 
 // Enable graceful stop
