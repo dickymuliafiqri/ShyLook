@@ -1,4 +1,4 @@
-const ytdl = require("youtube-dl-exec");
+const ytdll = require("youtube-dl-exec");
 const ffmpeg = require("@ffmpeg-installer/ffmpeg");
 const prettyMs = require("pretty-ms");
 
@@ -16,7 +16,7 @@ config({
   path: "./config.env",
 });
 
-ytdl.create("./bin/youtube-dlp");
+const ytdl = ytdll.create("./bin/youtube-dlp");
 
 if (!existsSync("./downloads")) mkdirSync("./downloads");
 if (!existsSync("./log")) mkdirSync("./log");
