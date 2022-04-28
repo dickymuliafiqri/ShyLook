@@ -325,5 +325,9 @@ bot.action("cancel", (ctx) => {
 });
 
 bot.launch().then(() => {
-  console.log("Bot started...");
+  console.log("[TG] Bot started...");
 });
+
+// Enable graceful stop
+process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGTERM", () => bot.stop("SIGTERM"));
