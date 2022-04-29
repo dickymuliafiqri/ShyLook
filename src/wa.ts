@@ -133,14 +133,14 @@ client.on("message", async (msg) => {
 
         if (isActive(log["pid"])) {
           return await msg.reply(
-            "You already have an active task\n\nSend .cancel to cancel your task"
+            "You already have an active task\n\nSend !cancel to cancel your task"
           );
         } else {
           metadata = queue[msg.from];
         }
       } else {
         await msg.reply(
-          "You already have a pending task\n\nSend .cancel to cancel your task"
+          "You already have a pending task\n\nSend !cancel to cancel your task"
         );
         metadata = queue[msg.from];
       }
@@ -181,11 +181,9 @@ ${formats.join(" | ")}
 Answer this message with !video [FORMAT] or !audio to download the format you desire
     `;
 
-    const media = isurl(metadata["thumbnail"])
-      ? await MessageMedia.fromUrl(metadata["thumbnail"], {
-          unsafeMime: true,
-        })
-      : await MessageMedia.fromFilePath(metadata["thumbnail"]);
+    const media = await MessageMedia.fromUrl(metadata["thumbnail"], {
+      unsafeMime: true,
+    });
 
     await msg
       .reply(caption, msg.from, {
