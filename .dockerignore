@@ -1,0 +1,10 @@
+.wwebjs_auth/
+.git/
+app/
+bin/
+downloads/
+log/
+node_modules/
+
+queue.json
+server.json

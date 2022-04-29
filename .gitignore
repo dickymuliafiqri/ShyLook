@@ -4,6 +4,7 @@ node_modules/
 log/
 downloads/
 app/
+bin/
 
 queue.json
 server.json
