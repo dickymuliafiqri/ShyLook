@@ -206,7 +206,6 @@ Answer this message with !video [FORMAT] or !audio to download the format you de
       const log = JSON.parse(readFileSync(`./log/${msg.from}.json`).toString());
 
       if (isActive(log["pid"])) process.kill(log["pid"]);
-      unlinkSync(`./log/${msg.from}.json`);
     }
 
     delete queue[msg.from];
