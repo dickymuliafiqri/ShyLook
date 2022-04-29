@@ -11,7 +11,6 @@ import {
 } from "fs";
 import { config } from "dotenv";
 import { startServer } from "./server";
-import path from "path";
 
 config({
   path: "./config.env",
@@ -26,6 +25,7 @@ if (!existsSync("./server.json")) writeFileSync("./server.json", "{}");
 
 export class Shy {
   async getMetadata(link: string) {
+    const server = JSON.parse(readFileSync(`./server.json`).toString());
     try {
       let metadata = await ytdl(link, {
         noCheckCertificate: true,
@@ -40,7 +40,9 @@ export class Shy {
 
       for (let i = metadata["thumbnails"].length - 1; i >= 0; i--) {
         if (i <= 0)
-          metadata["thumbnail"] = path.resolve(`${__dirname}/../assets/broken_image.png`);
+          metadata[
+            "thumbnail"
+          ] = `http://${server.host}/assets/broken_image.png`;
         if (!metadata["thumbnails"][i]["url"].match(/\.(webp)/i)) {
           metadata["thumbnail"] =
             metadata["thumbnails"][i]["url"].match(/(.+\.\w+)/i)[0];
@@ -146,7 +148,7 @@ export class Shy {
 
 (() => {
   import("./tele");
-  import("./wa");
+  // import("./wa");
 
   startServer();
 })();

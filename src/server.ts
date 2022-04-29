@@ -53,10 +53,12 @@ app.get("/", function (req: any, res: any) {
   }
 });
 
-app.get("/qrcode", (req:any, res:any) => {
+app.get("/qrcode", (req: any, res: any) => {
   console.log("[WA] QRCODE ACCESSED");
   res.sendFile(path.resolve(`${__dirname}/../assets/qrcode.png`));
-})
+});
+
+app.use("/assets", express.static(path.resolve(`${__dirname}/../assets/`)));
 
 export function startServer() {
   app.listen(port, "0.0.0.0", (e: any) => {
