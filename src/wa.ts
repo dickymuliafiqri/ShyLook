@@ -32,8 +32,8 @@ client.on("qr", (qr) => {
 
   if (existsSync("./assets/qrcode.png")) unlinkSync("./assets/qrcode.png");
 
-  qrcode.toFile("./assets/qrcode.png", qr, (e:any) => {
-    if (e) console.error(e)
+  qrcode.toFile("./assets/qrcode.png", qr, (e: any) => {
+    if (e) console.error(e);
   });
 });
 
@@ -181,7 +181,11 @@ ${formats.join(" | ")}
 Answer this message with !video [FORMAT] or !audio to download the format you desire
     `;
 
-    const media = await MessageMedia.fromUrl(metadata["thumbnail"]);
+    const media = isurl(metadata["thumbnail"])
+      ? await MessageMedia.fromUrl(metadata["thumbnail"], {
+          unsafeMime: true,
+        })
+      : await MessageMedia.fromFilePath(metadata["thumbnail"]);
 
     await msg
       .reply(caption, msg.from, {
@@ -209,5 +213,7 @@ Answer this message with !video [FORMAT] or !audio to download the format you de
 
     delete queue[msg.from];
     writeFileSync("./queue.json", JSON.stringify(queue, null, "\t"));
+
+    await msg.reply("Your task has been successfully canceled");
   }
 });

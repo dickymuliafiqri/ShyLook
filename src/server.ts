@@ -31,7 +31,7 @@ app.get("/", function (req: any, res: any) {
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunkSize = end - start + 1;
 
-      console.log(`STREAMING ${fileName}: ${start} - ${end} = ${chunkSize}`);
+      console.log(`[STREAM] ${fileName}: ${start} - ${end} = ${chunkSize}`);
 
       const file = createReadStream(filePath, { start, end });
       const head = {
@@ -54,7 +54,7 @@ app.get("/", function (req: any, res: any) {
 });
 
 app.get("/qrcode", (req:any, res:any) => {
-  console.log("QRCODE accessed...");
+  console.log("[WA] QRCODE ACCESSED");
   res.sendFile(path.resolve(`${__dirname}/../assets/qrcode.png`));
 })
 
