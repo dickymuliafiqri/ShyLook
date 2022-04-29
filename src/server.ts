@@ -9,7 +9,7 @@ const contentDisposition = require("content-disposition");
 const app = express();
 const port = process.env.PORT || 8000;
 
-app.use("/", function (req: any, res: any) {
+app.get("/", function (req: any, res: any) {
   const fileName = req.query["w"];
   const filePath = path.resolve(`${__dirname}/../downloads/${fileName}`);
   if (!existsSync(filePath)) return res.status(404);
@@ -52,6 +52,11 @@ app.use("/", function (req: any, res: any) {
     }
   }
 });
+
+app.get("/qrcode", (req:any, res:any) => {
+  console.log("QRCODE accessed...");
+  res.sendFile(path.resolve(`${__dirname}/../assets/qrcode.png`));
+})
 
 export function startServer() {
   app.listen(port, "0.0.0.0", (e: any) => {

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:latest
+FROM satantime/puppeteer-node:latest
 
 ENV NODE_ENV="production"
 

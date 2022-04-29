@@ -11,6 +11,7 @@ import {
 } from "fs";
 import { config } from "dotenv";
 import { startServer } from "./server";
+import path from "path";
 
 config({
   path: "./config.env",
@@ -39,8 +40,7 @@ export class Shy {
 
       for (let i = metadata["thumbnails"].length - 1; i >= 0; i--) {
         if (i <= 0)
-          metadata["thumbnail"] =
-            "https://bitsofco.de/content/images/2018/12/broken-1.png";
+          metadata["thumbnail"] = path.resolve(`${__dirname}/../assets/broken_image.png`);
         if (!metadata["thumbnails"][i]["url"].match(/\.(webp)/i)) {
           metadata["thumbnail"] =
             metadata["thumbnails"][i]["url"].match(/(.+\.\w+)/i)[0];

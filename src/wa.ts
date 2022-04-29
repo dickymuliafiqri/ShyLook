@@ -13,13 +13,14 @@ const isurl = require("is-url");
 const slug = require("slug");
 const byteSize = require("byte-size");
 const isActive = require("is-running");
-const qrcode = require("qrcode-terminal");
+const qrcode = require("qrcode");
 const shy = new Shy();
 
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
     headless: true,
+    args: ["--no-sandbox"],
   },
   ffmpegPath: ffmpeg.path,
 });
@@ -27,9 +28,12 @@ const client = new Client({
 client.initialize();
 
 client.on("qr", (qr) => {
-  console.log("[WA] SCAN THIS QR TO AUTHENTICATE");
-  qrcode.generate(qr, {
-    small: true,
+  console.log("[WA] GO TO /qrcode TO GET QRCODE");
+
+  if (existsSync("./assets/qrcode.png")) unlinkSync("./assets/qrcode.png");
+
+  qrcode.toFile("./assets/qrcode.png", qr, (e:any) => {
+    if (e) console.error(e)
   });
 });
 
