@@ -46,6 +46,7 @@ client.on("auth_failure", (msg) => {
 });
 
 client.on("ready", () => {
+  if (existsSync("./assets/qrcode.png")) unlinkSync("./assets/qrcode.png");
   console.log("[WA] READY");
 });
 
@@ -89,7 +90,7 @@ function getMedia(
               statSync(`./downloads/${fileName}${format}`).size
             )}\nThis file will be deleted in 6 hrs\n\nDownload:\nhttp://${
               server.host
-            }/?w=${fileName}${format}&dl=1\n\nStream:\nhttp://${
+            }/?d=${fileName}${format}\n\nStream:\nhttp://${
               server.host
             }/?w=${fileName}${format}`,
             msg.from,

@@ -10,12 +10,13 @@ const app = express();
 const port = process.env.PORT || 8000;
 
 app.get("/", function (req: any, res: any) {
-  const fileName = req.query["w"];
+  const fileName = req.query["w"] || req.query["d"];
   const filePath = path.resolve(`${__dirname}/../downloads/${fileName}`);
-  if (!existsSync(filePath)) return res.status(404);
+  if (!existsSync(filePath)) return res.sendStatus(404);
   const fileSize = statSync(filePath).size;
 
-  if (req.query["dl"]) {
+  if (req.query["d"]) {
+    console.log(`[DOWNLOAD] ${fileName}`);
     const head = {
       "Content-Length": fileSize,
       "Content-Type": mime.lookup(filePath),
@@ -55,6 +56,7 @@ app.get("/", function (req: any, res: any) {
 
 app.get("/qrcode", (req: any, res: any) => {
   console.log("[WA] QRCODE ACCESSED");
+  if (!existsSync("./assets/qrcode.png")) return res.sendStatus(404);
   res.sendFile(path.resolve(`${__dirname}/../assets/qrcode.png`));
 });
 

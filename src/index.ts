@@ -1,5 +1,4 @@
 const ytdll = require("youtube-dl-exec");
-const ffmpeg = require("@ffmpeg-installer/ffmpeg");
 const prettyMs = require("pretty-ms");
 const requestImageSize = require("request-image-size");
 
@@ -124,7 +123,6 @@ export class Shy {
       format: `best[ext=mp4][height=${quality}]/best[height=${quality}]/best[height<=${quality}]/best`,
       recodeVideo: "mp4",
       output,
-      ffmpegLocation: ffmpeg.path,
     });
 
     this.writeLog(subprocess, id);
@@ -139,7 +137,6 @@ export class Shy {
       output,
       extractAudio: true,
       audioFormat: "mp3",
-      ffmpegLocation: ffmpeg.path,
     });
 
     this.writeLog(subprocess, id);
@@ -150,9 +147,9 @@ export class Shy {
     setTimeout(() => {
       try {
         unlinkSync(filePath);
-        console.log(`${filePath} has been successfully deleted!`);
-      } catch (e) {
-        console.error(e);
+        console.log(`[DELETE] SUCCESS: ${filePath}`);
+      } catch (e: any) {
+        console.log(`[DELETE] FAILED: ${filePath} (${e.message})`);
       }
     }, 21600000);
   }

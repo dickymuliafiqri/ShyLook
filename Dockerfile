@@ -8,7 +8,7 @@ WORKDIR /shy
 
 COPY . .
 
-RUN apt-get update || : && apt-get install python -y
+RUN apt-get update || : && apt-get install python ffmpeg -y
 RUN npm install
 RUN sh ./dl.sh
 
