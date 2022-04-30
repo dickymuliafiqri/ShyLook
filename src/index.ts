@@ -120,7 +120,7 @@ export class Shy {
     const output: string = `./downloads/${fileName}.mp4`;
     const subprocess = ytdl.exec(link, {
       noCheckCertificate: true,
-      format: `best[ext=mp4][height=${quality}]/best[height=${quality}]/best[height<=${quality}]/best`,
+      format: `best[height=${quality}]/best[height<=${quality}]/best`,
       recodeVideo: "mp4",
       output,
     });
