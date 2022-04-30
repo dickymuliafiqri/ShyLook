@@ -8,7 +8,6 @@ import {
   writeFileSync,
 } from "fs";
 
-const ffmpeg = require("@ffmpeg-installer/ffmpeg");
 const isurl = require("is-url");
 const slug = require("slug");
 const byteSize = require("byte-size");
@@ -21,8 +20,7 @@ const client = new Client({
   puppeteer: {
     headless: true,
     args: ["--no-sandbox"],
-  },
-  ffmpegPath: ffmpeg.path,
+  }
 });
 
 client.initialize();
