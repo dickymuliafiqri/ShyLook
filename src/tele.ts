@@ -60,8 +60,8 @@ function getMedia(ctx: any, isAudio?: boolean) {
             [Markup.button.callback("Cancel", "cancel")],
           ]),
         });
-      } catch (e) {
-        console.error(e);
+      } catch (e:any) {
+        console.error(`[TG] UPDATE ERROR: ${e.message}`);
       }
 
       if (!isNaN(code)) {
@@ -96,8 +96,8 @@ function getMedia(ctx: any, isAudio?: boolean) {
               message_id: queue?.message_id,
               ...Markup.inlineKeyboard([]),
             });
-          } catch (e) {
-            console.error(e);
+          } catch (e:any) {
+            console.error(`[TG] DOWNLOAD ERROR: ${e.message}`);
           }
         }
 

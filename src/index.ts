@@ -133,7 +133,7 @@ export class Shy {
     const output: string = `./downloads/${fileName}.mp3`;
     const subprocess = ytdl.exec(link, {
       noCheckCertificate: true,
-      format: `bestaudio`,
+      format: `bestaudio/worst/best`,
       output,
       extractAudio: true,
       audioFormat: "mp3",

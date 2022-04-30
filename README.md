@@ -14,6 +14,14 @@ Currently, I code this bot specifically to be hosted on `railway`
 - [x] Support WA (Not bot, using user account)
 - [ ] ~~Advance web media player (video.js)~~ (Default video player just more than enough)
 
+## Commands
+### Telegram Bot
+- Just send a video link and bot will do the rest  
+
+### Whatsapp Bot
+- `!link VIDEO_LINK` -> Parse video link  
+- `!cancel` -> Cancel your task  
+
 
 ## Installation
 ### Local host
