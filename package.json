@@ -4,7 +4,7 @@
   "description": "",
   "main": "app/index.js",
   "scripts": {
-    "start": "npx tsc && node app/index.js",
+    "start": "npx tsc && npx pm2 kill && npx pm2 start app/index.js -f && npx pm2 logs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "dickymuliafiqri",
@@ -21,6 +21,7 @@
     "ip": "^1.1.5",
     "is-running": "^2.1.0",
     "is-url": "^1.2.4",
+    "pm2": "^5.2.0",
     "pretty-ms": "^7.0.1",
     "qrcode": "^1.5.0",
     "request-image-size": "^2.2.0",

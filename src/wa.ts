@@ -97,7 +97,7 @@ function getMedia(
             }
           );
         } else {
-          await msg.reply(`Problem during download\n\n${msg}`);
+          await msg.reply(`Problem during download\n\n${progress}`);
         }
 
         delete queue[msg.from];
