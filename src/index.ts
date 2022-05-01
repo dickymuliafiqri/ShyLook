@@ -1,6 +1,7 @@
 const ytdll = require("youtube-dl-exec");
 const prettyMs = require("pretty-ms");
 const requestImageSize = require("request-image-size");
+const pm2 = require("pm2");
 
 import {
   mkdirSync,
@@ -25,6 +26,20 @@ if (!existsSync("./queue.json")) writeFileSync("./queue.json", "{}");
 if (!existsSync("./server.json")) writeFileSync("./server.json", "{}");
 
 export class Shy {
+  restart() {
+    pm2.connect((e: Error) => {
+      if (e) {
+        console.error(e);
+      }
+
+      pm2.reload("shy", (e: Error) => {
+        if (e) {
+          console.error(e);
+        }
+      });
+    });
+  }
+
   async getMetadata(link: string) {
     try {
       let metadata = await ytdl(link, {

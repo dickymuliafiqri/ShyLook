@@ -19,7 +19,7 @@ const byteSize = require("byte-size");
 const bot = new Telegraf<ShyLook>(String(process.env.BOT_TOKEN));
 const shy = new Shy();
 
-const server = JSON.parse(readFileSync(`./server.json`).toString());
+let server = JSON.parse(readFileSync(`./server.json`).toString());
 
 function getQueue() {
   return JSON.parse(readFileSync("./queue.json").toString());
@@ -60,7 +60,7 @@ function getMedia(ctx: any, isAudio?: boolean) {
             [Markup.button.callback("Cancel", "cancel")],
           ]),
         });
-      } catch (e:any) {
+      } catch (e: any) {
         console.error(`[TG] UPDATE ERROR: ${e.message}`);
       }
 
@@ -96,7 +96,7 @@ function getMedia(ctx: any, isAudio?: boolean) {
               message_id: queue?.message_id,
               ...Markup.inlineKeyboard([]),
             });
-          } catch (e:any) {
+          } catch (e: any) {
             console.error(`[TG] DOWNLOAD ERROR: ${e.message}`);
           }
         }
@@ -128,9 +128,9 @@ bot.start((ctx) => {
   return ctx.reply("Gimme a link!!!");
 });
 
-bot.on("text", async (ctx) => {
+bot.on("text", async (ctx, next) => {
   const link: string = ctx.update.message.text;
-  if (!isurl(link)) return ctx.reply("Send me a URL and i'll proceed that");
+  if (!isurl(link)) return next();
 
   console.log(`[TG] Link received: ${link}`);
   let metadata: any;
@@ -313,7 +313,33 @@ bot.action("cancel", (ctx) => {
   }
 });
 
-bot.launch().then(() => {
+bot.command("restart", async (ctx) => {
+  if (ctx.from.id != Number(process.env["TELE_OWNER"]))
+    return await ctx.reply("Forbidden");
+
+  ctx.replyWithChatAction("typing");
+  server["restarting"] = true;
+  writeFileSync("./server.json", JSON.stringify(server, null, "\t"));
+
+  shy.restart();
+});
+
+bot.launch().then(async () => {
+  if (server["restarting"]) {
+    console.log("[TG] RESTARTED");
+
+    try {
+      await bot.telegram.sendMessage(
+        Number(process.env["TELE_OWNER"]),
+        "BOT RESTARTED"
+      );
+    } catch (e: any) {
+      console.error(e.message);
+    } finally {
+      server["restarting"] = false;
+      writeFileSync("./server.json", JSON.stringify(server, null, "\t"));
+    }
+  }
   console.log("[TG] READY");
 });
 

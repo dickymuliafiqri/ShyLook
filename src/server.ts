@@ -1,4 +1,10 @@
-import { writeFileSync, statSync, existsSync, createReadStream } from "fs";
+import {
+  writeFileSync,
+  statSync,
+  existsSync,
+  createReadStream,
+  readFileSync,
+} from "fs";
 
 const express = require("express");
 const mime = require("mime-types");
@@ -61,12 +67,17 @@ app.get("/qrcode", (req: any, res: any) => {
 });
 
 export function startServer() {
+  let server = existsSync("./server.json")
+    ? JSON.parse(readFileSync(`./server.json`).toString())
+    : {};
+
   app.listen(port, "0.0.0.0", (e: any) => {
     if (e) console.error(e);
     writeFileSync(
       "./server.json",
       JSON.stringify(
         {
+          ...server,
           host: process.env.RAILWAY_STATIC_URL || ip.address(),
           port,
         },
