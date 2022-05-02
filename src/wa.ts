@@ -20,11 +20,11 @@ const client = new Client({
   puppeteer: {
     headless: true,
     args: ["--no-sandbox"],
-  }
+  },
 });
 
 client.initialize().then(() => {
-  console.log("[WA] INITIALIZING...")
+  console.log("[WA] INITIALIZING...");
 });
 
 client.on("qr", (qr) => {
@@ -117,10 +117,30 @@ client.on("message", async (msg) => {
 
   if (msg.body.startsWith("!ping")) {
     await msg.reply("pong");
-  } else if (msg.body.startsWith("!link")) {
-    const link = msg.body.split(" ")[1];
+  } else if (msg.body.startsWith("!video")) {
+    if (!queue[msg.from]) return await msg.reply("You have no task");
+    getMedia(msg, format, server, queue, true);
+  } else if (msg.body.startsWith("!audio")) {
+    format = ".mp3";
+    if (!queue[msg.from]) return await msg.reply("You have no task");
+    getMedia(msg, format, server, queue, false);
+  } else if (msg.body.startsWith("!cancel")) {
+    if (existsSync(`./log/${msg.from}.json`)) {
+      const log = JSON.parse(readFileSync(`./log/${msg.from}.json`).toString());
 
-    if (!isurl(link)) return await msg.reply("Not a valid link");
+      if (isActive(log["pid"])) process.kill(log["pid"]);
+    }
+
+    delete queue[msg.from];
+    writeFileSync("./queue.json", JSON.stringify(queue, null, "\t"));
+
+    await msg.reply("Your task has been successfully canceled");
+  } else if (msg.body.startsWith("!link")) {
+    return msg.reply("No need '!link' keyword, just send the link as is");
+  } else {
+    const link = msg.body;
+
+    if (!isurl(link)) return;
     console.log(`[WA] Link received: ${link}`);
 
     msg.reply("Please wait...");
@@ -195,27 +215,9 @@ Answer this message with !video [FORMAT] or !audio to download the format you de
         queue[msg.from]["media"] = media;
         writeFileSync(`./queue.json`, JSON.stringify(queue, null, "\t"));
       });
-  } else if (msg.body.startsWith("!video")) {
-    if (!queue[msg.from]) return await msg.reply("You have no task");
-    getMedia(msg, format, server, queue, true);
-  } else if (msg.body.startsWith("!audio")) {
-    format = ".mp3";
-    if (!queue[msg.from]) return await msg.reply("You have no task");
-    getMedia(msg, format, server, queue, false);
-  } else if (msg.body.startsWith("!cancel")) {
-    if (existsSync(`./log/${msg.from}.json`)) {
-      const log = JSON.parse(readFileSync(`./log/${msg.from}.json`).toString());
-
-      if (isActive(log["pid"])) process.kill(log["pid"]);
-    }
-
-    delete queue[msg.from];
-    writeFileSync("./queue.json", JSON.stringify(queue, null, "\t"));
-
-    await msg.reply("Your task has been successfully canceled");
   }
 });
 
-client.on('disconnected', (reason) => {
-  console.log('[WA] DISCONNECTED:', reason);
+client.on("disconnected", (reason) => {
+  console.log("[WA] DISCONNECTED:", reason);
 });
