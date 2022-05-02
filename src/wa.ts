@@ -23,7 +23,9 @@ const client = new Client({
   }
 });
 
-client.initialize();
+client.initialize().then(() => {
+  console.log("[WA] INITIALIZING...")
+});
 
 client.on("qr", (qr) => {
   console.log("[WA] GO TO /qrcode TO GET QRCODE");
@@ -212,4 +214,8 @@ Answer this message with !video [FORMAT] or !audio to download the format you de
 
     await msg.reply("Your task has been successfully canceled");
   }
+});
+
+client.on('disconnected', (reason) => {
+  console.log('[WA] DISCONNECTED:', reason);
 });
