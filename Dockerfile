@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM satantime/puppeteer-node:latest
+FROM node:lts-slim
 
 ENV NODE_ENV="production"
 

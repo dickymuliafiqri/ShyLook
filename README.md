@@ -9,7 +9,7 @@ Telegram/WA bot to download video using youtube-dl
 - [x] Audio downloader
 - [ ] ~~Direct video downloader~~ (No need to mirror since it **direct**)
 - [x] Support telegram bot
-- [x] Support WA (Not bot, using user account)
+- ~~[x] Support WA (Not bot, using user account)~~
 - [x] Streaming server
 - [ ] ~~Advance web media player (video.js)~~ (Default video player just more than enough)
 
@@ -19,12 +19,6 @@ Telegram/WA bot to download video using youtube-dl
 
 - Just send a video link and bot will do the rest
 - `/restart` -> Restart bot (Experimental)
-
-### Whatsapp Bot
-
-- Just send a video link and bot will do the rest
-- `!cancel` -> Cancel your task
-- `!ping` -> Pong
 
 ## Installation
 
@@ -45,7 +39,9 @@ Fill all variables on `sample_config.env` then rename it to `config.env`
 
 #### How To Authenticate Whatsapp Bot
 
-After successfully run your bot, you should get message like `[WA] GO TO /qrcode TO BLABLABLA`  
+~~After successfully run your bot, you should get message like `[WA] GO TO /qrcode TO BLABLABLA`  
 That's mean, you should go to `http://YOUR_HOST/qrcode`, then you will get the qrcode. Scan that QR using WA.  
 If the authentication is success, message `[WA] AUTHENTICATED` should appear, else if not.  
-Bot will save your session, so you don't need to re-authenticate. else if you redeploy it at any case.
+Bot will save your session, so you don't need to re-authenticate. else if you redeploy it at any case.~~
+
+No Support

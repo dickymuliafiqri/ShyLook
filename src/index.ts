@@ -174,7 +174,6 @@ export class Shy {
 
 (() => {
   import("./tele");
-  import("./wa");
 
   startServer();
 })();
