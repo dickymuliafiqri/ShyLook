@@ -18,6 +18,7 @@ const host = process.env.HOST || ip.address();
 
 app.get("/", function (req: any, res: any) {
   const fileName = req.query["w"] || req.query["d"];
+  if (!fileName) return res.sendStatus(200);
   const filePath = path.resolve(`${__dirname}/../downloads/${fileName}`);
   if (!existsSync(filePath)) return res.sendStatus(404);
   const fileSize = statSync(filePath).size;

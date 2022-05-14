@@ -77,13 +77,13 @@ function getMedia(ctx: any, isAudio?: boolean) {
                 [
                   Markup.button.url(
                     "Download",
-                    `http://${server.host}/?d=${fileName}${format}`
+                    `${server.host}/?d=${fileName}${format}`
                   ),
                 ],
                 [
                   Markup.button.url(
                     "Stream",
-                    `http://${server.host}/?w=${fileName}${format}`
+                    `${server.host}/?w=${fileName}${format}`
                   ),
                 ],
               ]),
