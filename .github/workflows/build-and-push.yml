@@ -41,7 +41,7 @@ jobs:
         with:
           image: dickymuliafiqri/shylook:latest
           run: |
-            wget ${{ secrets.CONFIG_ENV }} -O config.env
+            wget ${{ secrets.CONFIG_ENV }} -q -O config.env
             timeout 180 npm start || code=$?; if [[ $code -ne 124 ]]; then exit $code; fi
 
       - name: Image digest
