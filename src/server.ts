@@ -82,7 +82,7 @@ export function startServer() {
       )
     );
     console.log(
-      `Server listening on http://${host}:${port}`
+      `Server listening on ${host}:${port}`
     );
   });
 }
