@@ -16,6 +16,7 @@ import {
 } from "fs";
 import { config } from "dotenv";
 import { startServer } from "./server";
+import path from "path";
 
 if (existsSync("./config.env")) {
   config({
@@ -58,7 +59,7 @@ export class Shy {
     const mem = await si.mem();
     const dlDisk = await (new Promise((resolve, reject) => {
       df({
-        file: "./downloads"
+        file: path.resolve(`${__dirname}/../downloads`)
       }, (e:any, r:any) => {
         if (e) reject(e)
         else resolve(r)
@@ -70,6 +71,11 @@ export class Shy {
     info += `Uptime: ${prettyMs(time.uptime || 0 * 1000)}\n`
     info += `Is Virtual: ${system.virtual}\n\n`
     info += `CPU: ${cpu.manufacturer} ${cpu.brand}\n`;
+    /**
+     * TODO
+     * 
+     * - Fix CPU load
+     */
     info += `Speed: ${cpu.speedMin}/${cpu.speed}/${cpu.speedMax} GHz\n`;
     info += `Load: ${(():string => {
       const pr = this.progressBar(cpuSpeed.avg || 0, cpuSpeed.max || 10);
