@@ -62,7 +62,7 @@ export class Shy {
         file: path.resolve(`${__dirname}/../downloads`)
       }, (e:any, r:any) => {
         if (e) reject(e)
-        else resolve(r)
+        else resolve(r[0])
       });
     })) as any;
 
