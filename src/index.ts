@@ -5,6 +5,7 @@ const pm2 = require("pm2");
 const percentage = require('calculate-percentages');
 const byteSize = require("byte-size");
 const si = require("systeminformation");
+const df = require("node-df");
 
 import {
   mkdirSync,
@@ -55,13 +56,14 @@ export class Shy {
     const cpu = await si.cpu();
     const cpuSpeed = await si.cpuCurrentSpeed();
     const mem = await si.mem();
-    const fsSize = await (async () => {
-        const fsSize = await si.fsSize();
-        
-        for (let f of fsSize) {
-            if (f.mount === "/") return f
-        }
-    })();
+    const dlDisk = await (new Promise((resolve, reject) => {
+      df({
+        file: "./downloads"
+      }, (e:any, r:any) => {
+        if (e) reject(e)
+        else resolve(r)
+      });
+    })) as any;
 
     // Build system info
     info += `OS: ${os.platform}\n`
@@ -84,12 +86,11 @@ export class Shy {
       const pr = this.progressBar(mem.swapused || 0, mem.swaptotal || 10);
       return `${pr.progressString} | ${pr.percent}%\n\n`;
     })()}`
-    info += `Disk: ${fsSize.fs}\n`;
-    info += `Type: ${fsSize.type}\n`;
-    info += `Size: ${byteSize(fsSize.size || 0)}\n`;
-    info += `Available: ${byteSize(fsSize.available || 0)}\n`
+    info += `Disk: ${dlDisk.filesystem}\n`;
+    info += `Size: ${byteSize(dlDisk.size)}\n`;
+    info += `Available: ${byteSize(dlDisk.available || 0)}\n`
     info += `Used: ${(():string => {
-      const pr = this.progressBar(fsSize.used || 0, fsSize.size || 10);
+      const pr = this.progressBar(dlDisk.used || 0, dlDisk.size || 10);
       return `${pr.progressString} | ${pr.percent}%`;
     })()}`
 
