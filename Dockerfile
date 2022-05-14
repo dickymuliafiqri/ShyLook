@@ -10,6 +10,6 @@ COPY . .
 
 RUN apt-get update -y && apt-get install python ffmpeg -y
 RUN npm install
-RUN sh ./dl.sh
+RUN bash dl.sh
 
 CMD ["npm", "start"]
