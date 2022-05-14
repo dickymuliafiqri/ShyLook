@@ -2,6 +2,8 @@ const ytdll = require("youtube-dl-exec");
 const prettyMs = require("pretty-ms");
 const requestImageSize = require("request-image-size");
 const pm2 = require("pm2");
+const percentage = require('calculate-percentages');
+const byteSize = require("byte-size");
 
 import {
   mkdirSync,
@@ -40,6 +42,76 @@ export class Shy {
         }
       });
     });
+  }
+
+  async systemInfo() {
+    let info:string = ""
+
+    // Get system info
+    const system = await si.system();
+    const os = await si.osInfo();
+    const time = await si.time();
+    const cpu = await si.cpu();
+    const cpuSpeed = await si.cpuCurrentSpeed();
+    const mem = await si.mem();
+    const fsSize = await (async () => {
+        const fsSize = await si.fsSize();
+        
+        for (let f of fsSize) {
+            if (f.mount === "/") return f
+        }
+    })();
+
+    // Build system info
+    info += `OS: ${os.platform}\n`
+    info += `Uptime: ${prettyMs(time.uptime || 0 * 1000)}\n`
+    info += `Is Virtual: ${system.virtual}\n\n`
+    info += `CPU: ${cpu.manufacturer} ${cpu.brand}\n`;
+    info += `Speed: ${cpu.speedMin}/${cpu.speed}/${cpu.speedMax} GHz\n`;
+    info += `Load: ${(():string => {
+      const pr = this.progressBar(cpuSpeed.avg || 0, cpuSpeed.max || 10);
+      return `${pr.progressString} | ${pr.percent}%\n\n`;
+    })()}`
+    info += `Memory: ${byteSize(mem.total || 0)}\n`;
+    info += `Available: ${byteSize(mem.available || 0)}\n`;
+    info += `Load: ${(():string => {
+      const pr = this.progressBar(mem.active || 0, mem.total || 10);
+      return `${pr.progressString} | ${pr.percent}%\n\n`;
+    })()}`
+    info += `Swap: ${byteSize(mem.swaptotal || 0)}\n`;
+    info += `Load: ${(():string => {
+      const pr = this.progressBar(mem.swapused || 0, mem.swaptotal || 10);
+      return `${pr.progressString} | ${pr.percent}%\n\n`;
+    })()}`
+    info += `Disk: ${fsSize.fs}\n`;
+    info += `Type: ${fsSize.type}\n`;
+    info += `Size: ${byteSize(fsSize.size || 0)}\n`;
+    info += `Available: ${byteSize(fsSize.available || 0)}\n`
+    info += `Used: ${(():string => {
+      const pr = this.progressBar(fsSize.used || 0, fsSize.size || 10);
+      return `${pr.progressString} | ${pr.percent}%`;
+    })()}`
+
+    return info;
+  }
+
+  progressBar(current:number|string, max:number|string): {
+    progressString: string,
+    percent: string
+  } {
+    const percent:string = percentage.calculate(current, max).toFixed(2);
+    const fixNum:number = Math.round(Number(percent))/10;
+
+    let progressString:string = "";
+    for (let i = 1; i <= 10; i++) {
+        if (i <= fixNum) progressString += "█";
+        else progressString += "░"
+    }
+
+    return {
+      progressString,
+      percent
+    };
   }
 
   async getMetadata(link: string) {

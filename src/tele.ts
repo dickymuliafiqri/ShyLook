@@ -58,6 +58,7 @@ function getMedia(ctx: any, isAudio?: boolean) {
           message_id: queue?.message_id,
           ...Markup.inlineKeyboard([
             [Markup.button.callback("Cancel", "cancel")],
+            [Markup.button.callback("Stats", "stats")]
           ]),
         });
       } catch (e: any) {
@@ -312,6 +313,12 @@ bot.action("cancel", (ctx) => {
     }
   }
 });
+
+bot.action("stats", async (ctx) => {
+  return ctx.answerCbQuery(await shy.systemInfo(), {
+    show_alert: true
+  })
+})
 
 bot.command("restart", async (ctx) => {
   if (ctx.from.id != Number(process.env["TELE_OWNER"]))
