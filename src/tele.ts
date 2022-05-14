@@ -314,10 +314,8 @@ bot.action("cancel", (ctx) => {
   }
 });
 
-bot.action("stats", async (ctx) => {
-  return ctx.answerCbQuery(await shy.systemInfo(), {
-    show_alert: true
-  })
+bot.command("stats", async (ctx) => {
+  return ctx.replyWithHTML(await shy.systemInfo());
 })
 
 bot.command("restart", async (ctx) => {
