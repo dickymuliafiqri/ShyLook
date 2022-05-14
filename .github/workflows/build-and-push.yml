@@ -37,7 +37,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Test image
-      - uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@v3
         with:
           image: dickymuliafiqri/shylook:latest
           run: |
