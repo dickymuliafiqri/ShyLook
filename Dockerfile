@@ -9,7 +9,7 @@ WORKDIR /usr/src/shy
 COPY . .
 
 
-RUN apt-get update -y && apt-get install wget curl python3 ffmpeg -y
+RUN apt-get update -y && apt-get install wget curl python3 python ffmpeg -y
 RUN bash dl.sh
 RUN npm install
 

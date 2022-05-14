@@ -61,12 +61,6 @@ app.get("/", function (req: any, res: any) {
   }
 });
 
-app.get("/qrcode", (req: any, res: any) => {
-  console.log("[WA] QRCODE ACCESSED");
-  if (!existsSync("./assets/qrcode.png")) return res.sendStatus(404);
-  res.sendFile(path.resolve(`${__dirname}/../assets/qrcode.png`));
-});
-
 export function startServer() {
   let server = existsSync("./server.json")
     ? JSON.parse(readFileSync(`./server.json`).toString())
