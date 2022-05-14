@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:lts
+FROM node:lts-slim
 
 ENV NODE_ENV="production"
 
@@ -8,8 +8,10 @@ WORKDIR /usr/src/shy
 
 COPY . .
 
+
+RUN apt-get update -y && apt-get wget curl install python ffmpeg -y
 RUN bash dl.sh
-RUN apt-get update -y && apt-get install python ffmpeg -y
 RUN npm install
+
 
 CMD ["npm", "start"]
