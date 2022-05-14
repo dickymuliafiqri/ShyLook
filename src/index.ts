@@ -13,9 +13,11 @@ import {
 import { config } from "dotenv";
 import { startServer } from "./server";
 
-config({
-  path: "./config.env",
-});
+if (existsSync("./config.env")) {
+  config({
+    path: "./config.env",
+  });
+}
 
 const ytdl = ytdll.create("./bin/youtube-dlp");
 

@@ -4,11 +4,11 @@ FROM satantime/puppeteer-node:latest
 
 ENV NODE_ENV="production"
 
-WORKDIR /shy
+WORKDIR /usr/src/shy
 
 COPY . .
 
-RUN apt-get update || : && apt-get install python ffmpeg -y
+RUN apt-get update -y && apt-get install python ffmpeg -y
 RUN npm install
 RUN sh ./dl.sh
 

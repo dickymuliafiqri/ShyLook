@@ -13,7 +13,8 @@ const ip = require("ip");
 const contentDisposition = require("content-disposition");
 
 const app = express();
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 80;
+const host = process.env.HOST || ip.address();
 
 app.get("/", function (req: any, res: any) {
   const fileName = req.query["w"] || req.query["d"];
@@ -78,7 +79,7 @@ export function startServer() {
       JSON.stringify(
         {
           ...server,
-          host: process.env.RAILWAY_STATIC_URL || ip.address(),
+          host,
           port,
         },
         null,
@@ -86,9 +87,7 @@ export function startServer() {
       )
     );
     console.log(
-      `Server listening on http://${
-        process.env.RAILWAY_STATIC_URL || ip.address()
-      }:${port}`
+      `Server listening on http://${host}:${port}`
     );
   });
 }
