@@ -1,25 +1,16 @@
-import {
-  writeFileSync,
-  statSync,
-  existsSync,
-  createReadStream,
-  readFileSync,
-} from "fs";
+import { writeFileSync, statSync, existsSync, createReadStream, readFileSync } from "fs";
 
 const express = require("express");
 const mime = require("mime-types");
-const path = require("path");
 const ip = require("ip");
 const contentDisposition = require("content-disposition");
 
 const app = express();
-const port = process.env.PORT || 80;
-const host = process.env.HOST || ip.address();
 
 app.get("/", function (req: any, res: any) {
   const fileName = req.query["w"] || req.query["d"];
   if (!fileName) return res.sendStatus(200);
-  const filePath = path.resolve(`${__dirname}/../downloads/${fileName}`);
+  const filePath = `${process.cwd()}/downloads/${fileName}`;
   if (!existsSync(filePath)) return res.sendStatus(404);
   const fileSize = statSync(filePath).size;
 
@@ -63,9 +54,9 @@ app.get("/", function (req: any, res: any) {
 });
 
 export function startServer() {
-  let server = existsSync("./server.json")
-    ? JSON.parse(readFileSync(`./server.json`).toString())
-    : {};
+  let server = existsSync("./server.json") ? JSON.parse(readFileSync(`./server.json`).toString()) : {};
+  const port = process.env.PORT || 80;
+  const host = process.env.HOST || ip.address();
 
   app.listen(port, "0.0.0.0", (e: any) => {
     if (e) console.error(e);
@@ -81,8 +72,6 @@ export function startServer() {
         "\t"
       )
     );
-    console.log(
-      `Server listening on ${host}:${port}`
-    );
+    console.log(`Server listening on ${host}:${port}`);
   });
 }

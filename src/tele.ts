@@ -1,11 +1,6 @@
+import { systemInfo, progressBar } from "./ext/msg_helper";
 import { Context, Telegraf, Markup } from "telegraf";
-import {
-  readFileSync,
-  writeFileSync,
-  existsSync,
-  unlinkSync,
-  statSync,
-} from "fs";
+import { readFileSync, writeFileSync, existsSync, unlinkSync, statSync } from "fs";
 import { Shy } from "./index";
 
 interface ShyLook extends Context {
@@ -32,10 +27,7 @@ function getMedia(ctx: any, isAudio?: boolean) {
   let queue = ctx.queue[String(ctx.from.id)];
   let caption = queue["caption"];
   const quality = ctx.match[1];
-  const fileName: string = `shyLook-${slug(queue["title"]).substring(
-    0,
-    190
-  )}-${quality}`;
+  const fileName: string = `shyLook-${slug(queue["title"]).substring(0, 190)}-${quality}`;
 
   if (isAudio) {
     shy.getAudio(queue["webpage_url"], fileName, Number(ctx.from.id));
@@ -46,20 +38,15 @@ function getMedia(ctx: any, isAudio?: boolean) {
   const updateProgress = setInterval(async () => {
     let queue = getQueue()[String(ctx.from?.id)];
     if (existsSync(`./log/${ctx.from?.id}.json`)) {
-      const log = JSON.parse(
-        readFileSync(`./log/${ctx.from?.id}.json`).toString()
-      );
+      const log = JSON.parse(readFileSync(`./log/${ctx.from?.id}.json`).toString());
       const msg = log.log;
       const code = log.code;
 
       try {
-        await ctx.editMessageCaption(`${caption}\n\nProgress: ${msg}`, {
+        await ctx.editMessageCaption(`${caption}\n\nProgress: ${msg}\n\n${await systemInfo(true)}`, {
           // @ts-ignore
           message_id: queue?.message_id,
-          ...Markup.inlineKeyboard([
-            [Markup.button.callback("Cancel", "cancel")],
-            [Markup.button.callback("Stats", "stats")]
-          ]),
+          ...Markup.inlineKeyboard([[Markup.button.callback("Cancel", "cancel")]]),
         });
       } catch (e: any) {
         console.error(`[TG] UPDATE ERROR: ${e.message}`);
@@ -75,18 +62,8 @@ function getMedia(ctx: any, isAudio?: boolean) {
               // @ts-ignore
               message_id: queue?.message_id,
               ...Markup.inlineKeyboard([
-                [
-                  Markup.button.url(
-                    "Download",
-                    `${server.host}/?d=${fileName}${format}`
-                  ),
-                ],
-                [
-                  Markup.button.url(
-                    "Stream",
-                    `${server.host}/?w=${fileName}${format}`
-                  ),
-                ],
+                [Markup.button.url("Download", `${server.host}/?d=${fileName}${format}`)],
+                [Markup.button.url("Stream", `${server.host}/?w=${fileName}${format}`)],
               ]),
             }
           );
@@ -115,10 +92,7 @@ bot.use((ctx, next) => {
   ctx.queue = getQueue();
 
   if (update.callback_query) {
-    if (
-      update.callback_query.from.id !=
-      update.callback_query.message.reply_to_message.from.id
-    )
+    if (update.callback_query.from.id != update.callback_query.message.reply_to_message.from.id)
       return ctx.answerCbQuery("Not your business 🤡");
   }
 
@@ -140,18 +114,14 @@ bot.on("text", async (ctx, next) => {
   if (ctx.queue[ctx.from.id]) {
     const message_id = ctx.queue[ctx.from.id]["message_id"];
     if (existsSync(`./log/${ctx.from.id}.json`)) {
-      const data = JSON.parse(
-        readFileSync(`./log/${ctx.from.id}.json`).toString()
-      );
+      const data = JSON.parse(readFileSync(`./log/${ctx.from.id}.json`).toString());
       if (isActive(data["pid"])) {
         await ctx.reply("You already have an active task");
 
         await ctx
           .replyWithPhoto(ctx.queue[ctx.from.id]["thumbnail"], {
             caption: ctx.queue[ctx.from.id]["caption"],
-            ...Markup.inlineKeyboard([
-              [Markup.button.callback("Cancel", "cancel")],
-            ]),
+            ...Markup.inlineKeyboard([[Markup.button.callback("Cancel", "cancel")]]),
           })
           .then((r) => {
             ctx.queue[ctx.from.id]["message_id"] = r.message_id;
@@ -167,10 +137,7 @@ bot.on("text", async (ctx, next) => {
           caption: ctx.queue[ctx.from.id]["caption"],
           reply_to_message_id: ctx.update.message.message_id,
           ...Markup.inlineKeyboard([
-            [
-              Markup.button.callback("Video", "video"),
-              Markup.button.callback("Audio", "audio"),
-            ],
+            [Markup.button.callback("Video", "video"), Markup.button.callback("Audio", "audio")],
             [Markup.button.callback("Cancel", "cancel")],
           ]),
         })
@@ -179,10 +146,7 @@ bot.on("text", async (ctx, next) => {
         });
     }
     try {
-      await bot.telegram.deleteMessage(
-        ctx.queue[ctx.from.id]["chat_id"],
-        message_id
-      );
+      await bot.telegram.deleteMessage(ctx.queue[ctx.from.id]["chat_id"], message_id);
     } catch (e) {
       console.error(e);
     }
@@ -201,29 +165,21 @@ bot.on("text", async (ctx, next) => {
   caption += `Views: ${metadata["view_count"]}\n`;
   caption += `Channel: ${metadata["channel"]}\n`;
   caption += `Source: ${metadata["extractor_key"]}\n`;
-  caption += `Description: ${
-    metadata["description"]
-      ? metadata["description"].substring(0, 200) + "..."
-      : "-"
-  }`;
+  caption += `Description: ${metadata["description"] ? metadata["description"].substring(0, 200) + "..." : "-"}`;
 
   await ctx
     .replyWithPhoto(metadata["thumbnail"], {
       caption,
       reply_to_message_id: ctx.update.message.message_id,
       ...Markup.inlineKeyboard([
-        [
-          Markup.button.callback("Video", "video"),
-          Markup.button.callback("Audio", "audio"),
-        ],
+        [Markup.button.callback("Video", "video"), Markup.button.callback("Audio", "audio")],
         [Markup.button.callback("Cancel", "cancel")],
       ]),
     })
     .then((r) => {
       ctx.queue[ctx.from.id] = metadata;
       ctx.queue[ctx.from.id]["message_id"] = r.message_id;
-      ctx.queue[ctx.from.id]["reply_to_message_id"] =
-        ctx.update.message.message_id;
+      ctx.queue[ctx.from.id]["reply_to_message_id"] = ctx.update.message.message_id;
       ctx.queue[ctx.from.id]["caption"] = caption;
       ctx.queue[ctx.from.id]["chat_id"] = r.chat.id;
       ctx.queue[ctx.from.id]["from_id"] = r.from?.id;
@@ -249,24 +205,16 @@ bot.action("video", (ctx) => {
   let rowIndex: number = 0;
   formats.forEach((format) => {
     if (buttonRow[rowIndex]) {
-      buttonRow[rowIndex] = [
-        ...buttonRow[rowIndex],
-        Markup.button.callback(`${format}p`, `v-${format}`),
-      ];
+      buttonRow[rowIndex] = [...buttonRow[rowIndex], Markup.button.callback(`${format}p`, `v-${format}`)];
     } else {
-      buttonRow[rowIndex] = [
-        Markup.button.callback(`${format}p`, `v-${format}`),
-      ];
+      buttonRow[rowIndex] = [Markup.button.callback(`${format}p`, `v-${format}`)];
     }
 
     if (buttonRow[rowIndex].length > 2) rowIndex += 1;
   });
 
   return ctx.editMessageReplyMarkup(
-    Markup.inlineKeyboard([
-      ...buttonRow,
-      [Markup.button.callback("Back", "menu")],
-    ]).reply_markup
+    Markup.inlineKeyboard([...buttonRow, [Markup.button.callback("Back", "menu")]]).reply_markup
   );
 });
 
@@ -281,10 +229,7 @@ bot.action(/^(audio)/, (ctx) => {
 bot.action("menu", (ctx) => {
   return ctx.editMessageReplyMarkup(
     Markup.inlineKeyboard([
-      [
-        Markup.button.callback("Video", "video"),
-        Markup.button.callback("Audio", "audio"),
-      ],
+      [Markup.button.callback("Video", "video"), Markup.button.callback("Audio", "audio")],
       [Markup.button.callback("Cancel", "cancel")],
     ]).reply_markup
   );
@@ -296,10 +241,7 @@ bot.action("cancel", (ctx) => {
     if (isActive(log["pid"])) process.kill(log["pid"], 1);
 
     log["log"] = "[Canceled] Download canceled";
-    writeFileSync(
-      `./log/${ctx.from?.id}.json`,
-      JSON.stringify(log, null, "\t")
-    );
+    writeFileSync(`./log/${ctx.from?.id}.json`, JSON.stringify(log, null, "\t"));
   } else {
     if (ctx.queue[String(ctx.from?.id)]) {
       ctx.editMessageCaption(ctx.queue[String(ctx.from?.id)]["caption"], {
@@ -315,12 +257,11 @@ bot.action("cancel", (ctx) => {
 });
 
 bot.command("stats", async (ctx) => {
-  return ctx.replyWithHTML(await shy.systemInfo());
-})
+  return ctx.replyWithHTML(await systemInfo());
+});
 
 bot.command("restart", async (ctx) => {
-  if (ctx.from.id != Number(process.env["TELE_OWNER"]))
-    return await ctx.reply("Forbidden");
+  if (ctx.from.id != Number(process.env["TELE_OWNER"])) return await ctx.reply("Forbidden");
 
   ctx.replyWithChatAction("typing");
   server["restarting"] = true;
@@ -334,10 +275,7 @@ bot.launch().then(async () => {
     console.log("[TG] RESTARTED");
 
     try {
-      await bot.telegram.sendMessage(
-        Number(process.env["TELE_OWNER"]),
-        "BOT RESTARTED"
-      );
+      await bot.telegram.sendMessage(Number(process.env["TELE_OWNER"]), "BOT RESTARTED");
     } catch (e: any) {
       console.error(e.message);
     } finally {

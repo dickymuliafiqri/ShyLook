@@ -2,23 +2,14 @@ const ytdll = require("youtube-dl-exec");
 const prettyMs = require("pretty-ms");
 const requestImageSize = require("request-image-size");
 const pm2 = require("pm2");
-const percentage = require('calculate-percentages');
-const byteSize = require("byte-size");
-const si = require("systeminformation");
-const df = require("node-df");
 
-import {
-  mkdirSync,
-  existsSync,
-  writeFileSync,
-  unlinkSync,
-  readFileSync,
-} from "fs";
+import { mkdirSync, existsSync, writeFileSync } from "fs";
 import { config } from "dotenv";
 import { startServer } from "./server";
-import path from "path";
+import { flushFile, writeLog } from "./ext/fs_helper";
 
-if (existsSync("./config.env")) {
+if (existsSync(`./config.env`)) {
+  console.log("[INFO] - config.env found");
   config({
     path: "./config.env",
   });
@@ -47,81 +38,6 @@ export class Shy {
     });
   }
 
-  async systemInfo() {
-    let info:string = ""
-
-    // Get system info
-    const system = await si.system();
-    const os = await si.osInfo();
-    const time = await si.time();
-    const cpu = await si.cpu();
-    const cpuSpeed = await si.cpuCurrentSpeed();
-    const mem = await si.mem();
-    const dlDisk = await (new Promise((resolve, reject) => {
-      df({
-        file: path.resolve(`${__dirname}/../downloads`)
-      }, (e:any, r:any) => {
-        if (e) reject(e)
-        else resolve(r[0])
-      });
-    })) as any;
-
-    // Build system info
-    info += `OS: ${os.platform}\n`
-    info += `Uptime: ${prettyMs(time.uptime || 0 * 1000)}\n`
-    info += `Is Virtual: ${system.virtual}\n\n`
-    info += `CPU: ${cpu.manufacturer} ${cpu.brand}\n`;
-    /**
-     * TODO
-     * 
-     * - Fix CPU load
-     */
-    info += `Speed: ${cpu.speedMin}/${cpu.speed}/${cpu.speedMax} GHz\n`;
-    info += `Load: ${(():string => {
-      const pr = this.progressBar(cpuSpeed.avg || 0, cpuSpeed.max || 10);
-      return `${pr.progressString} | ${pr.percent}%\n\n`;
-    })()}`
-    info += `Memory: ${byteSize(mem.total || 0)}\n`;
-    info += `Available: ${byteSize(mem.available || 0)}\n`;
-    info += `Load: ${(():string => {
-      const pr = this.progressBar(mem.active || 0, mem.total || 10);
-      return `${pr.progressString} | ${pr.percent}%\n\n`;
-    })()}`
-    info += `Swap: ${byteSize(mem.swaptotal || 0)}\n`;
-    info += `Load: ${(():string => {
-      const pr = this.progressBar(mem.swapused || 0, mem.swaptotal || 10);
-      return `${pr.progressString} | ${pr.percent}%\n\n`;
-    })()}`
-    info += `Disk: ${dlDisk.filesystem}\n`;
-    info += `Size: ${byteSize(dlDisk.size)}\n`;
-    info += `Available: ${byteSize(dlDisk.available || 0)}\n`
-    info += `Used: ${(():string => {
-      const pr = this.progressBar(dlDisk.used || 0, dlDisk.size || 10);
-      return `${pr.progressString} | ${pr.percent}%`;
-    })()}`
-
-    return info;
-  }
-
-  progressBar(current:number|string, max:number|string): {
-    progressString: string,
-    percent: string
-  } {
-    const percent:string = percentage.calculate(current, max).toFixed(2);
-    const fixNum:number = Math.round(Number(percent))/10;
-
-    let progressString:string = "";
-    for (let i = 1; i <= 10; i++) {
-        if (i <= fixNum) progressString += "█";
-        else progressString += "░"
-    }
-
-    return {
-      progressString,
-      percent
-    };
-  }
-
   async getMetadata(link: string) {
     try {
       let metadata = await ytdl(link, {
@@ -137,12 +53,10 @@ export class Shy {
 
       for (let i = metadata["thumbnails"].length - 1; i >= 0; i--) {
         if (!metadata["thumbnails"][i]["url"].match(/\.(webp)/i)) {
-          metadata["thumbnail"] =
-            metadata["thumbnails"][i]["url"].match(/(.+\.\w+)/i)[0];
+          metadata["thumbnail"] = metadata["thumbnails"][i]["url"].match(/(.+\.\w+)/i)[0];
           break;
         } else if (i <= 0) {
-          metadata["thumbnail"] =
-            "https://bitsofco.de/content/images/2018/12/broken-1.png";
+          metadata["thumbnail"] = "https://bitsofco.de/content/images/2018/12/broken-1.png";
         }
       }
 
@@ -153,9 +67,7 @@ export class Shy {
         .catch((e: any) => {
           console.error(`ERROR GETTING IMAGE: ${e.message}`);
 
-          if (e.message != "aborted")
-            metadata["thumbnail"] =
-              "https://bitsofco.de/content/images/2018/12/broken-1.png";
+          if (e.message != "aborted") metadata["thumbnail"] = "https://bitsofco.de/content/images/2018/12/broken-1.png";
         });
 
       return metadata;
@@ -164,56 +76,13 @@ export class Shy {
     }
   }
 
-  private writeLog(subprocess: any, fileId: number | string) {
-    subprocess.stdout.on("data", (data: string) => {
-      writeFileSync(
-        `./log/${fileId}.json`,
-        JSON.stringify(
-          {
-            pid: subprocess.pid,
-            log: data.toString(),
-          },
-          null,
-          "\t"
-        )
-      );
-    });
-    subprocess.stderr.on("data", (data: string) => {
-      writeFileSync(
-        `./log/${fileId}.json`,
-        JSON.stringify(
-          {
-            pid: subprocess.pid,
-            log: data.toString(),
-          },
-          null,
-          "\t"
-        )
-      );
-    });
-    subprocess.on("close", (code: any) => {
-      const data = JSON.parse(readFileSync(`./log/${fileId}.json`).toString());
+  /**
+   * TODO
+   *
+   * - Delete canceled or error file/task
+   */
 
-      writeFileSync(
-        `./log/${fileId}.json`,
-        JSON.stringify(
-          {
-            ...data,
-            code,
-          },
-          null,
-          "\t"
-        )
-      );
-    });
-  }
-
-  getVideo(
-    link: string,
-    quality: string,
-    fileName: string,
-    id: number | string
-  ) {
+  getVideo(link: string, quality: string, fileName: string, id: number | string) {
     const output: string = `./downloads/${fileName}.mp4`;
     const subprocess = ytdl.exec(link, {
       noCheckCertificate: true,
@@ -222,8 +91,8 @@ export class Shy {
       output,
     });
 
-    this.writeLog(subprocess, id);
-    this.flushFile(output);
+    writeLog(subprocess, id);
+    flushFile(output);
   }
 
   getAudio(link: string, fileName: string, id: number) {
@@ -236,19 +105,8 @@ export class Shy {
       audioFormat: "mp3",
     });
 
-    this.writeLog(subprocess, id);
-    this.flushFile(output);
-  }
-
-  private async flushFile(filePath: string) {
-    setTimeout(() => {
-      try {
-        unlinkSync(filePath);
-        console.log(`[DELETE] SUCCESS: ${filePath}`);
-      } catch (e: any) {
-        console.log(`[DELETE] FAILED: ${filePath} (${e.message})`);
-      }
-    }, 21600000);
+    writeLog(subprocess, id);
+    flushFile(output);
   }
 }
 

@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@types/node": "^17.0.29",
-    "@types/systeminformation": "^3.54.1",
     "byte-size": "^8.1.0",
     "calculate-percentages": "^1.0.0",
     "cors": "^2.8.5",

@@ -8,3 +8,4 @@ bin/
 
 queue.json
 server.json
+config.env
