@@ -114,7 +114,7 @@ export class Shy {
 (async () => {
   // Update from upstream repo
   await update().catch((e) => {
-    console.log("[ERROR]: Fetch upstream repo...");
+    console.error("[ERROR]: Fetch upstream repo...");
     console.error(e);
   });
 

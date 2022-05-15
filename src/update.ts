@@ -24,7 +24,6 @@ export default async () => {
         reject(error.message);
       }
       if (stderr) {
-        console.log(`[ERROR]: ${stderr}`);
         reject(stderr);
       }
       console.log(`[GIT]: Successfully updated from ${UPSTREAM_REPO}:${UPSTREAM_BRANCH}`);
