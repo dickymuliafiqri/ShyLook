@@ -1,3 +1,4 @@
+.github/
 .idea/
 .wwebjs_auth/
 node_modules/
@@ -5,6 +6,7 @@ log/
 downloads/
 app/
 bin/
+git/
 
 queue.json
 server.json

@@ -1,5 +1,4 @@
-const exec = require("child_process");
-
+import { execSync, exec } from "child_process";
 import { existsSync } from "fs";
 
 const UPSTREAM_REPO: string = "https://github.com/dickymuliafiqri/ShyLook";
@@ -16,7 +15,7 @@ const UPDATE_COMMAND: string = `git init -q \
 && bash dl.sh \
 && npx tsc`;
 
-if (existsSync(".git")) exec("rm -rf .git");
+if (existsSync(".git")) execSync("rm -rf .git");
 
 export default async () => {
   return await new Promise((resolve, reject) => {

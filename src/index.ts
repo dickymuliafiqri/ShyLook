@@ -7,6 +7,7 @@ import { mkdirSync, existsSync, writeFileSync } from "fs";
 import { config } from "dotenv";
 import { startServer } from "./server";
 import { flushFile, writeLog } from "./ext/fs_helper";
+import update from "./update";
 
 if (existsSync(`./config.env`)) {
   console.log("[INFO] - config.env found");
@@ -112,8 +113,8 @@ export class Shy {
 
 (async () => {
   // Update from upstream repo
-  await import("./update").catch((e) => {
-    console.log("[ERROR]: Failed fetch upstream repo");
+  await update().catch((e) => {
+    console.log("[ERROR]: Fetch upstream repo...");
     console.error(e);
   });
 
