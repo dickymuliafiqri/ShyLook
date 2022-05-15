@@ -1,6 +1,6 @@
 const exec = require("child_process");
 
-import { existsSync, unlinkSync } from "fs";
+import { existsSync } from "fs";
 
 const UPSTREAM_REPO: string = "https://github.com/dickymuliafiqri/ShyLook";
 const UPSTREAM_BRANCH: string = "main";
@@ -13,12 +13,13 @@ const UPDATE_COMMAND: string = `git init -q \
 && git remote add origin ${UPSTREAM_REPO} \
 && git fetch origin -q \
 && git reset --hard origin/${UPSTREAM_BRANCH} -q \
+&& bash dl.sh \
 && npx tsc`;
 
-if (existsSync("./.git")) unlinkSync("./.git");
+if (existsSync(".git")) exec("rm -rf .git");
 
 export default async () => {
-  await new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     exec(UPDATE_COMMAND, (error: any, stdout: any, stderr: any) => {
       if (error) {
         reject(error.message);
