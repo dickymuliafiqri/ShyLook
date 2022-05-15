@@ -4,7 +4,7 @@
   "description": "",
   "main": "app/index.js",
   "scripts": {
-    "start": "npx tsc && npx pm2 kill && npx pm2 start app/index.js --name shy --restart-delay 5000 -f && npx pm2 logs"
+    "start": "bash start.sh"
   },
   "author": "dickymuliafiqri",
   "license": "MIT",

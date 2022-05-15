@@ -110,8 +110,16 @@ export class Shy {
   }
 }
 
-(() => {
+(async () => {
+  // Update from upstream repo
+  await import("./update").catch((e) => {
+    console.log("[ERROR]: Failed fetch upstream repo");
+    console.error(e);
+  });
+
+  // Run bot
   import("./tele");
 
+  // Run server
   startServer();
 })();
