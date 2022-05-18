@@ -14,14 +14,17 @@ async function getMedia(ctx: any, isAudio?: boolean) {
   if (!ctx.from?.id) return;
 
   const data = await DBShy.get(`SELECT * FROM queue WHERE uid = ?;`, ctx.from?.id);
+  const metadata = JSON.parse(data["metadata"]);
+
+  if (data == undefined) await bot.telegram.deleteMessage(ctx.chat.id, ctx.message.message_id);
   let format: string = isAudio ? ".mp3" : ".mp4";
   const quality = ctx.match[1];
-  const fileName: string = `shyLook-${slug(data["metadata"]["title"]).substring(0, 190)}-${quality}`;
+  const fileName: string = `shyLook-${slug(metadata["title"]).substring(0, 190)}-${quality}`;
 
   if (isAudio) {
-    shy.getAudio(data["metadata"]["webpage_url"], fileName, Number(ctx.from.id));
+    shy.getAudio(metadata["webpage_url"], fileName, Number(ctx.from.id));
   } else {
-    shy.getVideo(data["metadata"]["webpage_url"], quality, fileName, Number(ctx.from.id));
+    shy.getVideo(metadata["webpage_url"], quality, fileName, Number(ctx.from.id));
   }
 
   const updateProgress = setInterval(async () => {
@@ -39,7 +42,7 @@ async function getMedia(ctx: any, isAudio?: boolean) {
         console.error(`[TG] UPDATE ERROR: ${e.message}`);
       }
 
-      if (!isNaN(error_code)) {
+      if (error_code >= 0) {
         if (error_code == 0) {
           await ctx.editMessageCaption(
             `${data.caption}\nSize: ${byteSize(
@@ -98,15 +101,12 @@ bot.on("text", async (ctx, next) => {
   ctx.replyWithChatAction("upload_photo");
   if (data) {
     const message_id = data.message_id;
+    metadata = JSON.parse(data["metadata"]);
     let button: any;
 
-    if (isActive(data["pid"])) {
-      await ctx.reply("You already have an active task");
-
+    if (isActive(data.pid) && data.pid > 0) {
       button = Markup.inlineKeyboard([[Markup.button.callback("Cancel", "cancel")]]);
     } else {
-      await ctx.reply("You already have a pending task");
-
       button = Markup.inlineKeyboard([
         [Markup.button.callback("Video", "video"), Markup.button.callback("Audio", "audio")],
         [Markup.button.callback("Cancel", "cancel")],
@@ -114,7 +114,7 @@ bot.on("text", async (ctx, next) => {
     }
 
     await ctx
-      .replyWithPhoto(data["metadata"]["thumbnail"], {
+      .replyWithPhoto(metadata["thumbnail"], {
         caption: data["caption"],
         reply_to_message_id: ctx.update.message.message_id,
         ...button,
@@ -128,6 +128,7 @@ bot.on("text", async (ctx, next) => {
     } catch (e) {
       console.error(e);
     }
+    return;
   } else {
     metadata = await shy.getMetadata(link);
   }
@@ -155,9 +156,9 @@ bot.on("text", async (ctx, next) => {
     })
     .then(async (r) => {
       await DBShy.run(`INSERT INTO queue VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-        r.from?.id,
+        ctx.from.id,
         r.chat.id,
-        metadata,
+        JSON.stringify(metadata),
         caption,
         ctx.update.message.message_id,
         "",
@@ -174,8 +175,9 @@ bot.action("video", async (ctx) => {
   if (!ctx.from?.id) return;
 
   const data = await DBShy.get(`SELECT * FROM queue WHERE uid = ?;`, ctx.from.id);
+  const metadata = JSON.parse(data["metadata"]);
 
-  data["metadata"]["formats"].forEach((format: any) => {
+  metadata["formats"].forEach((format: any) => {
     const height = format["height"];
     if (!(height == null)) {
       if (!formats.includes(height)) {
@@ -221,7 +223,7 @@ bot.action("cancel", async (ctx) => {
   const data = await DBShy.get(`SELECT * FROM queue WHERE uid = ?;`, ctx.from?.id);
 
   if (data) {
-    if (isActive(data.pid)) {
+    if (isActive(data.pid) && data.pid > 0) {
       process.kill(data.pid, 1);
       DBShy.run(`UPDATE queue SET msg = "[Canceled] Download canceled" WHERE uid = ?;`, ctx.from?.id);
     } else {

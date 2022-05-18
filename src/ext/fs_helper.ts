@@ -28,6 +28,6 @@ export function writeLog(subprocess: any, uid: number | string) {
   });
 
   subprocess.on("close", async (code: any) => {
-    await DBShy.run(`UPDATE queue SET error_code = ? WHERE uid = ?;`, [code, uid]);
+    await DBShy.run(`UPDATE queue SET error_code = ? WHERE uid = ?;`, [code ? code : 1, uid]);
   });
 }
