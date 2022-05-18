@@ -1,8 +1,8 @@
-import { writeFileSync, statSync, existsSync, createReadStream, readFileSync } from "fs";
+import { statSync, existsSync, createReadStream } from "fs";
+import { DBShy } from "./index";
 
 const express = require("express");
 const mime = require("mime-types");
-const ip = require("ip");
 const contentDisposition = require("content-disposition");
 
 const app = express();
@@ -53,25 +53,10 @@ app.get("/", function (req: any, res: any) {
   }
 });
 
-export function startServer() {
-  let server = existsSync("./server.json") ? JSON.parse(readFileSync(`./server.json`).toString()) : {};
-  const port = process.env.PORT || 80;
-  const host = process.env.HOST || ip.address();
-
-  app.listen(port, "0.0.0.0", (e: any) => {
+export async function startServer() {
+  const appHost = await DBShy.getAppHost();
+  app.listen(appHost.port, "0.0.0.0", (e: any) => {
     if (e) console.error(e);
-    writeFileSync(
-      "./server.json",
-      JSON.stringify(
-        {
-          ...server,
-          host,
-          port,
-        },
-        null,
-        "\t"
-      )
-    );
-    console.log(`Server listening on ${host}:${port}`);
+    console.log(`Server listening on ${appHost.host}:${appHost.port}`);
   });
 }

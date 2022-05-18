@@ -1,7 +1,7 @@
 import { systemInfo, progressBar } from "./ext/msg_helper";
 import { Context, Telegraf, Markup } from "telegraf";
 import { readFileSync, writeFileSync, existsSync, unlinkSync, statSync } from "fs";
-import { Shy } from "./index";
+import { Shy, DBShy } from "./index";
 
 interface ShyLook extends Context {
   queue?: string | any;
@@ -264,14 +264,13 @@ bot.command("restart", async (ctx) => {
   if (ctx.from.id != Number(process.env["TELE_OWNER"])) return await ctx.reply("Forbidden");
 
   ctx.replyWithChatAction("typing");
-  server["restarting"] = true;
-  writeFileSync("./server.json", JSON.stringify(server, null, "\t"));
 
+  await DBShy.setRestart(1);
   shy.restart();
 });
 
 bot.launch().then(async () => {
-  if (server["restarting"]) {
+  if ((await DBShy.getAppHost()).is_restart) {
     console.log("[TG] RESTARTED");
 
     try {
@@ -279,8 +278,7 @@ bot.launch().then(async () => {
     } catch (e: any) {
       console.error(e.message);
     } finally {
-      server["restarting"] = false;
-      writeFileSync("./server.json", JSON.stringify(server, null, "\t"));
+      DBShy.setRestart(0);
     }
   }
   console.log("[TG] READY");

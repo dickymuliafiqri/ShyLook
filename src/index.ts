@@ -6,6 +6,7 @@ const pm2 = require("pm2");
 import { mkdirSync, existsSync, writeFileSync } from "fs";
 import { config } from "dotenv";
 import { startServer } from "./server";
+import { DB } from "./ext/db";
 import { flushFile, writeLog } from "./ext/fs_helper";
 import update from "./update";
 
@@ -22,7 +23,8 @@ if (!existsSync("./downloads")) mkdirSync("./downloads");
 if (!existsSync("./log")) mkdirSync("./log");
 if (!existsSync("./assets")) mkdirSync("./assets");
 if (!existsSync("./queue.json")) writeFileSync("./queue.json", "{}");
-if (!existsSync("./server.json")) writeFileSync("./server.json", "{}");
+
+export const DBShy = new DB();
 
 export class Shy {
   restart() {
@@ -112,6 +114,9 @@ export class Shy {
 }
 
 (async () => {
+  // Initialize database
+  await DBShy.initialize();
+
   // Update from upstream repo
   await update().catch((e) => {
     console.error("[ERROR]: Fetch upstream repo...");

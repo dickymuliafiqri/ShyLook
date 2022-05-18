@@ -6,5 +6,6 @@ downloads/
 log/
 node_modules/
 
+*.db
 queue.json
 server.json

@@ -8,6 +8,7 @@ app/
 bin/
 git/
 
+*.db
 queue.json
 server.json
 config.env
