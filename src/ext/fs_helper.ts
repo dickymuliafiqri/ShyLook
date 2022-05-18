@@ -27,7 +27,7 @@ export function writeLog(subprocess: any, uid: number | string) {
     await DBShy.run(`UPDATE queue SET msg = ?, pid = ? WHERE uid = ?;`, [data.toString(), subprocess.pid, uid]);
   });
 
-  subprocess.on("close", async (code: any) => {
-    await DBShy.run(`UPDATE queue SET error_code = ? WHERE uid = ?;`, [code ? code : 1, uid]);
+  subprocess.on("close", async (code: number) => {
+    await DBShy.run(`UPDATE queue SET error_code = ? WHERE uid = ?;`, [code, uid]);
   });
 }
