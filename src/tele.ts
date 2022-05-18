@@ -1,75 +1,62 @@
 import { systemInfo, progressBar } from "./ext/msg_helper";
-import { Context, Telegraf, Markup } from "telegraf";
-import { readFileSync, writeFileSync, existsSync, unlinkSync, statSync } from "fs";
+import { Telegraf, Markup } from "telegraf";
+import { statSync } from "fs";
 import { Shy, DBShy } from "./index";
-
-interface ShyLook extends Context {
-  queue?: string | any;
-}
 
 const isurl = require("is-url");
 const slug = require("slug");
 const isActive = require("is-running");
 const byteSize = require("byte-size");
-const bot = new Telegraf<ShyLook>(String(process.env.BOT_TOKEN));
+const bot = new Telegraf(String(process.env.BOT_TOKEN));
 const shy = new Shy();
 
-function getQueue() {
-  return JSON.parse(readFileSync("./queue.json").toString());
-}
-
-function getMedia(ctx: any, isAudio?: boolean) {
+async function getMedia(ctx: any, isAudio?: boolean) {
   if (!ctx.from?.id) return;
 
+  const data = await DBShy.get(`SELECT * FROM queue WHERE uid = ?;`, ctx.from?.id);
   let format: string = isAudio ? ".mp3" : ".mp4";
-  let queue = ctx.queue[String(ctx.from.id)];
-  let caption = queue["caption"];
   const quality = ctx.match[1];
-  const fileName: string = `shyLook-${slug(queue["title"]).substring(0, 190)}-${quality}`;
+  const fileName: string = `shyLook-${slug(data["metadata"]["title"]).substring(0, 190)}-${quality}`;
 
   if (isAudio) {
-    shy.getAudio(queue["webpage_url"], fileName, Number(ctx.from.id));
+    shy.getAudio(data["metadata"]["webpage_url"], fileName, Number(ctx.from.id));
   } else {
-    shy.getVideo(queue["webpage_url"], quality, fileName, Number(ctx.from.id));
+    shy.getVideo(data["metadata"]["webpage_url"], quality, fileName, Number(ctx.from.id));
   }
 
   const updateProgress = setInterval(async () => {
-    let queue = getQueue()[String(ctx.from?.id)];
-    if (existsSync(`./log/${ctx.from?.id}.json`)) {
-      const log = JSON.parse(readFileSync(`./log/${ctx.from?.id}.json`).toString());
-      const msg = log.log;
-      const code = log.code;
+    const data = await DBShy.get(`SELECT * FROM queue WHERE uid = ?;`, ctx.from?.id);
+    if (data) {
+      const msg = data.msg;
+      const error_code = data.error_code;
 
       try {
-        await ctx.editMessageCaption(`${caption}\n\nProgress: ${msg}\n\n${await systemInfo(true)}`, {
-          // @ts-ignore
-          message_id: queue?.message_id,
+        await ctx.editMessageCaption(`${data.caption}\n\nProgress: ${msg}\n\n${await systemInfo(true)}`, {
+          message_id: data.message_id,
           ...Markup.inlineKeyboard([[Markup.button.callback("Cancel", "cancel")]]),
         });
       } catch (e: any) {
         console.error(`[TG] UPDATE ERROR: ${e.message}`);
       }
 
-      if (!isNaN(code)) {
-        if (code == 0) {
+      if (!isNaN(error_code)) {
+        if (error_code == 0) {
           await ctx.editMessageCaption(
-            `${caption}\nSize: ${byteSize(
+            `${data.caption}\nSize: ${byteSize(
               statSync(`./downloads/${fileName}${format}`).size
             )}\nThis file will be deleted in 6 hrs`,
             {
-              // @ts-ignore
-              message_id: queue?.message_id,
+              message_id: data.message_id,
               ...Markup.inlineKeyboard([
                 [Markup.button.url("Download", `${DBShy.host}/?d=${fileName}${format}`)],
                 [Markup.button.url("Stream", `${DBShy.host}/?w=${fileName}${format}`)],
               ]),
             }
           );
-        } else {
+        } else if (error_code > 0) {
           try {
             await ctx.editMessageCaption(`Problem during download\n\n${msg}`, {
-              // @ts-ignore
-              message_id: queue?.message_id,
+              message_id: data.message_id,
               ...Markup.inlineKeyboard([]),
             });
           } catch (e: any) {
@@ -77,8 +64,7 @@ function getMedia(ctx: any, isAudio?: boolean) {
           }
         }
 
-        delete ctx.queue[String(ctx.from?.id)];
-        writeFileSync(`./queue.json`, JSON.stringify(ctx.queue, null, "\t"));
+        await DBShy.run(`DELETE FROM queue WHERE uid = ?;`, ctx.from?.id);
         clearInterval(updateProgress);
       }
     }
@@ -87,7 +73,6 @@ function getMedia(ctx: any, isAudio?: boolean) {
 
 bot.use((ctx, next) => {
   const update: any = ctx.update;
-  ctx.queue = getQueue();
 
   if (update.callback_query) {
     if (update.callback_query.from.id != update.callback_query.message.reply_to_message.from.id)
@@ -108,47 +93,41 @@ bot.on("text", async (ctx, next) => {
   console.log(`[TG] Link received: ${link}`);
   let metadata: any;
 
-  ctx.replyWithChatAction("upload_photo");
-  if (ctx.queue[ctx.from.id]) {
-    const message_id = ctx.queue[ctx.from.id]["message_id"];
-    if (existsSync(`./log/${ctx.from.id}.json`)) {
-      const data = JSON.parse(readFileSync(`./log/${ctx.from.id}.json`).toString());
-      if (isActive(data["pid"])) {
-        await ctx.reply("You already have an active task");
+  const data = await DBShy.get(`SELECT * FROM queue WHERE uid = ?`, ctx.from.id);
 
-        await ctx
-          .replyWithPhoto(ctx.queue[ctx.from.id]["thumbnail"], {
-            caption: ctx.queue[ctx.from.id]["caption"],
-            ...Markup.inlineKeyboard([[Markup.button.callback("Cancel", "cancel")]]),
-          })
-          .then((r) => {
-            ctx.queue[ctx.from.id]["message_id"] = r.message_id;
-          });
-      } else {
-        unlinkSync(`./log/${ctx.from.id}.json`);
-      }
+  ctx.replyWithChatAction("upload_photo");
+  if (data) {
+    const message_id = data.message_id;
+    let button: any;
+
+    if (isActive(data["pid"])) {
+      await ctx.reply("You already have an active task");
+
+      button = Markup.inlineKeyboard([[Markup.button.callback("Cancel", "cancel")]]);
     } else {
       await ctx.reply("You already have a pending task");
 
-      await ctx
-        .replyWithPhoto(ctx.queue[ctx.from.id]["thumbnail"], {
-          caption: ctx.queue[ctx.from.id]["caption"],
-          reply_to_message_id: ctx.update.message.message_id,
-          ...Markup.inlineKeyboard([
-            [Markup.button.callback("Video", "video"), Markup.button.callback("Audio", "audio")],
-            [Markup.button.callback("Cancel", "cancel")],
-          ]),
-        })
-        .then((r) => {
-          ctx.queue[ctx.from.id]["message_id"] = r.message_id;
-        });
+      button = Markup.inlineKeyboard([
+        [Markup.button.callback("Video", "video"), Markup.button.callback("Audio", "audio")],
+        [Markup.button.callback("Cancel", "cancel")],
+      ]);
     }
+
+    await ctx
+      .replyWithPhoto(data["metadata"]["thumbnail"], {
+        caption: data["caption"],
+        reply_to_message_id: ctx.update.message.message_id,
+        ...button,
+      })
+      .then(async (r) => {
+        await DBShy.run(`UPDATE queue SET message_id = ? WHERE uid = ?;`, [r.message_id, ctx.from.id]);
+      });
+
     try {
-      await bot.telegram.deleteMessage(ctx.queue[ctx.from.id]["chat_id"], message_id);
+      await bot.telegram.deleteMessage(data["cid"], message_id);
     } catch (e) {
       console.error(e);
     }
-    return writeFileSync("./queue.json", JSON.stringify(ctx.queue, null, "\t"));
   } else {
     metadata = await shy.getMetadata(link);
   }
@@ -174,24 +153,29 @@ bot.on("text", async (ctx, next) => {
         [Markup.button.callback("Cancel", "cancel")],
       ]),
     })
-    .then((r) => {
-      ctx.queue[ctx.from.id] = metadata;
-      ctx.queue[ctx.from.id]["message_id"] = r.message_id;
-      ctx.queue[ctx.from.id]["reply_to_message_id"] = ctx.update.message.message_id;
-      ctx.queue[ctx.from.id]["caption"] = caption;
-      ctx.queue[ctx.from.id]["chat_id"] = r.chat.id;
-      ctx.queue[ctx.from.id]["from_id"] = r.from?.id;
+    .then(async (r) => {
+      await DBShy.run(`INSERT INTO queue VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+        r.from?.id,
+        r.chat.id,
+        metadata,
+        caption,
+        ctx.update.message.message_id,
+        "",
+        r.message_id,
+        -1,
+        -1,
+      ]);
     });
-
-  return writeFileSync("./queue.json", JSON.stringify(ctx.queue, null, "\t"));
 });
 
-bot.action("video", (ctx) => {
+bot.action("video", async (ctx) => {
   let buttonRow: Array<Array<any>> = [[]];
   const formats: Array<number> = [];
   if (!ctx.from?.id) return;
 
-  ctx.queue[String(ctx.from?.id)]["formats"].forEach((format: any) => {
+  const data = await DBShy.get(`SELECT * FROM queue WHERE uid = ?;`, ctx.from.id);
+
+  data["metadata"]["formats"].forEach((format: any) => {
     const height = format["height"];
     if (!(height == null)) {
       if (!formats.includes(height)) {
@@ -233,24 +217,21 @@ bot.action("menu", (ctx) => {
   );
 });
 
-bot.action("cancel", (ctx) => {
-  if (existsSync(`./log/${ctx.from?.id}.json`)) {
-    let log = JSON.parse(readFileSync(`./log/${ctx.from?.id}.json`).toString());
-    if (isActive(log["pid"])) process.kill(log["pid"], 1);
+bot.action("cancel", async (ctx) => {
+  const data = await DBShy.get(`SELECT * FROM queue WHERE uid = ?;`, ctx.from?.id);
 
-    log["log"] = "[Canceled] Download canceled";
-    writeFileSync(`./log/${ctx.from?.id}.json`, JSON.stringify(log, null, "\t"));
-  } else {
-    if (ctx.queue[String(ctx.from?.id)]) {
-      ctx.editMessageCaption(ctx.queue[String(ctx.from?.id)]["caption"], {
+  if (data) {
+    if (isActive(data.pid)) {
+      process.kill(data.pid, 1);
+      DBShy.run(`UPDATE queue SET msg = "[Canceled] Download canceled" WHERE uid = ?;`, ctx.from?.id);
+    } else {
+      ctx.editMessageCaption(data.caption, {
         ...Markup.inlineKeyboard([]),
       });
-
-      delete ctx.queue[String(ctx.from?.id)];
-      writeFileSync(`./queue.json`, JSON.stringify(ctx.queue, null, "\t"));
-    } else {
-      ctx.deleteMessage();
+      DBShy.run(`DELETE FROM queue WHERE uid = ?;`, ctx.from?.id);
     }
+  } else {
+    ctx.deleteMessage();
   }
 });
 

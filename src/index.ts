@@ -3,7 +3,7 @@ const prettyMs = require("pretty-ms");
 const requestImageSize = require("request-image-size");
 const pm2 = require("pm2");
 
-import { mkdirSync, existsSync, writeFileSync } from "fs";
+import { mkdirSync, existsSync } from "fs";
 import { config } from "dotenv";
 import { startServer } from "./server";
 import { DB } from "./ext/db";
@@ -22,7 +22,7 @@ const ytdl = ytdll.create("./bin/youtube-dlp");
 if (!existsSync("./downloads")) mkdirSync("./downloads");
 if (!existsSync("./log")) mkdirSync("./log");
 if (!existsSync("./assets")) mkdirSync("./assets");
-if (!existsSync("./queue.json")) writeFileSync("./queue.json", "{}");
+if (!existsSync("./db")) mkdirSync("./db");
 
 export const DBShy = new DB();
 

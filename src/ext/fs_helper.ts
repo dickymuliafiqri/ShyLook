@@ -1,4 +1,5 @@
-import { readFileSync, unlinkSync, writeFileSync } from "fs";
+import { unlinkSync } from "fs";
+import { DBShy } from "../index";
 
 /**
  * TODO
@@ -17,46 +18,16 @@ export async function flushFile(filePath: string) {
   }, 21600000);
 }
 
-export function writeLog(subprocess: any, fileId: number | string) {
-  subprocess.stdout.on("data", (data: string) => {
-    writeFileSync(
-      `./log/${fileId}.json`,
-      JSON.stringify(
-        {
-          pid: subprocess.pid,
-          log: data.toString(),
-        },
-        null,
-        "\t"
-      )
-    );
+export function writeLog(subprocess: any, uid: number | string) {
+  subprocess.stdout.on("data", async (data: string) => {
+    await DBShy.run(`UPDATE queue SET msg = ?, pid = ? WHERE uid = ?;`, [data.toString(), subprocess.pid, uid]);
   });
-  subprocess.stderr.on("data", (data: string) => {
-    writeFileSync(
-      `./log/${fileId}.json`,
-      JSON.stringify(
-        {
-          pid: subprocess.pid,
-          log: data.toString(),
-        },
-        null,
-        "\t"
-      )
-    );
-  });
-  subprocess.on("close", (code: any) => {
-    const data = JSON.parse(readFileSync(`./log/${fileId}.json`).toString());
 
-    writeFileSync(
-      `./log/${fileId}.json`,
-      JSON.stringify(
-        {
-          ...data,
-          code,
-        },
-        null,
-        "\t"
-      )
-    );
+  subprocess.stderr.on("data", async (data: string) => {
+    await DBShy.run(`UPDATE queue SET msg = ?, pid = ? WHERE uid = ?;`, [data.toString(), subprocess.pid, uid]);
+  });
+
+  subprocess.on("close", async (code: any) => {
+    await DBShy.run(`UPDATE queue SET error_code = ? WHERE uid = ?;`, [code, uid]);
   });
 }

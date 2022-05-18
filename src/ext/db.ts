@@ -1,10 +1,6 @@
 const sqlite3 = require("sqlite3").verbose();
 const ip = require("ip");
 
-import { existsSync, mkdirSync } from "fs";
-
-if (!existsSync("./db")) mkdirSync("./db");
-
 export class DB {
   private db: Array<any> = [];
   private appHost: any;
