@@ -54,9 +54,8 @@ app.get("/", function (req: any, res: any) {
 });
 
 export async function startServer() {
-  const appHost = await DBShy.getAppHost();
-  app.listen(appHost.port, "0.0.0.0", (e: any) => {
+  app.listen(DBShy.port, "0.0.0.0", (e: any) => {
     if (e) console.error(e);
-    console.log(`Server listening on ${appHost.host}:${appHost.port}`);
+    console.log(`Server listening on ${DBShy.host}:${DBShy.port}`);
   });
 }

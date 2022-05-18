@@ -7,6 +7,7 @@ if (!existsSync("./db")) mkdirSync("./db");
 
 export class DB {
   private db: Array<any> = [];
+  private appHost: any;
 
   async initialize() {
     // Create tables
@@ -53,7 +54,7 @@ export class DB {
     });
   }
 
-  async get(sql: string, param?: any) {
+  async get(sql: string, param?: any): Promise<any> {
     return await new Promise((resolve, reject) => {
       const db = this.connect();
       db.get(sql, param, (err: any, row: any) => {
@@ -66,7 +67,7 @@ export class DB {
     });
   }
 
-  async all(sql: string, param?: any) {
+  async all(sql: string, param?: any): Promise<any> {
     return await new Promise((resolve, reject) => {
       const db = this.connect();
       db.all(sql, param, (err: any, row: any) => {
@@ -81,20 +82,31 @@ export class DB {
 
   private async setServer() {
     const server = await this.get("SELECT * FROM app WHERE rowid = 1");
+    const host = process.env.HOST || ip.address();
+    const port = process.env.PORT || 8080;
+    const is_restart = 0;
+
     if (server == undefined) {
-      await this.run(`INSERT INTO app VALUES (?, ?, ?);`, [
-        process.env.HOST || ip.address(),
-        process.env.PORT || 8080,
-        0,
-      ]);
+      await this.run(`INSERT INTO app VALUES (?, ?, ?);`, [host, port, is_restart]);
     }
+
+    this.appHost = server || { host, port, is_restart };
   }
 
   async setRestart(value: number) {
     this.run(`UPDATE app SET is_restart = ? WHERE rowid = 1;`, value);
+    this.appHost.is_restart = value;
   }
 
-  async getAppHost(): Promise<any> {
-    return await this.get("SELECT * FROM app;");
+  get is_restart(): number {
+    return this.appHost.is_restart;
+  }
+
+  get host(): string {
+    return this.appHost.host;
+  }
+
+  get port(): number {
+    return this.appHost.port;
   }
 }

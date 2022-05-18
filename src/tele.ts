@@ -14,8 +14,6 @@ const byteSize = require("byte-size");
 const bot = new Telegraf<ShyLook>(String(process.env.BOT_TOKEN));
 const shy = new Shy();
 
-let server = JSON.parse(readFileSync(`./server.json`).toString());
-
 function getQueue() {
   return JSON.parse(readFileSync("./queue.json").toString());
 }
@@ -62,8 +60,8 @@ function getMedia(ctx: any, isAudio?: boolean) {
               // @ts-ignore
               message_id: queue?.message_id,
               ...Markup.inlineKeyboard([
-                [Markup.button.url("Download", `${server.host}/?d=${fileName}${format}`)],
-                [Markup.button.url("Stream", `${server.host}/?w=${fileName}${format}`)],
+                [Markup.button.url("Download", `${DBShy.host}/?d=${fileName}${format}`)],
+                [Markup.button.url("Stream", `${DBShy.host}/?w=${fileName}${format}`)],
               ]),
             }
           );
@@ -270,7 +268,7 @@ bot.command("restart", async (ctx) => {
 });
 
 bot.launch().then(async () => {
-  if ((await DBShy.getAppHost()).is_restart) {
+  if (DBShy.is_restart) {
     console.log("[TG] RESTARTED");
 
     try {
