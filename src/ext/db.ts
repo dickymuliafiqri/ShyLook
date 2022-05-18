@@ -15,11 +15,13 @@ export class DB {
 
     await this.run(`CREATE TABLE IF NOT EXISTS queue (
             uid INT,
+	          cid INT,
             metadata TEXT,
             caption TEXT,
-            pid INT,
+            reply_to_message_id INT,
             msg TEXT,
-            msgid INT,
+            message_id INT,
+	          pid INT,
             error_code INT
         );`);
 
