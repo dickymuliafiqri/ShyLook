@@ -25,7 +25,7 @@ async function getMedia(ctx: any, isAudio?: boolean) {
   if (isAudio) {
     shy.getAudio(metadata["webpage_url"], fileName, Number(ctx.from.id));
   } else {
-    shy.getVideo(metadata["webpage_url"], quality, fileName, Number(ctx.from.id));
+    shy.getVideo(metadata["webpage_url"], fileName, Number(ctx.from.id));
   }
 
   const updateProgress = setInterval(async () => {
@@ -168,44 +168,11 @@ bot.on("text", async (ctx, next) => {
     });
 });
 
-bot.action("video", async (ctx) => {
-  let buttonRow: Array<Array<any>> = [[]];
-  const formats: Array<number> = [];
-  if (!ctx.from?.id) return;
-
-  const data = await DBShy.get(`SELECT * FROM queue WHERE uid = ?;`, ctx.from.id);
-  const metadata = JSON.parse(data["metadata"]);
-
-  metadata["formats"].forEach((format: any) => {
-    const height = format["height"];
-    if (!(height == null)) {
-      if (!formats.includes(height)) {
-        formats.push(height);
-      }
-    }
-  });
-
-  let rowIndex: number = 0;
-  formats.forEach((format) => {
-    if (buttonRow[rowIndex]) {
-      buttonRow[rowIndex] = [...buttonRow[rowIndex], Markup.button.callback(`${format}p`, `v-${format}`)];
-    } else {
-      buttonRow[rowIndex] = [Markup.button.callback(`${format}p`, `v-${format}`)];
-    }
-
-    if (buttonRow[rowIndex].length > 2) rowIndex += 1;
-  });
-
-  return ctx.editMessageReplyMarkup(
-    Markup.inlineKeyboard([...buttonRow, [Markup.button.callback("Back", "menu")]]).reply_markup
-  );
-});
-
-bot.action(/^v-(\d+)/, (ctx) => {
+bot.action(/^video/, (ctx) => {
   return getMedia(ctx);
 });
 
-bot.action(/^(audio)/, (ctx) => {
+bot.action(/^audio/, (ctx) => {
   return getMedia(ctx, true);
 });
 

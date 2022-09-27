@@ -85,11 +85,11 @@ export class Shy {
    * - Delete canceled or error file/task
    */
 
-  getVideo(link: string, quality: string, fileName: string, id: number | string) {
+  getVideo(link: string, fileName: string, id: number | string) {
     const output: string = `./downloads/${fileName}.mp4`;
     const subprocess = ytdl.exec(link, {
       noCheckCertificate: true,
-      format: `best[height=${quality}]/best[height<=${quality}]/best`,
+      format: `best`,
       recodeVideo: "mp4",
       output,
       cookies: process.env.COOKIES ? `${process.cwd()}/cookies.txt` : "",
