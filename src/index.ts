@@ -50,7 +50,7 @@ export class Shy {
         dumpSingleJson: true,
         youtubeSkipDashManifest: true,
         retries: 3,
-        cookies: process.env.COOKIES ? `${process.cwd()}/cookies.txt` : "",
+        cookies: `${process.cwd()}/downloads/cookies.txt`,
       });
       metadata["duration"] = prettyMs(Number(metadata["duration"] || 0) * 1000);
 
