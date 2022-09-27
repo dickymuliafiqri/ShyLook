@@ -92,7 +92,7 @@ export class Shy {
       format: `best`,
       recodeVideo: "mp4",
       output,
-      cookies: `${process.cwd()}/cookies.txt`,
+      cookies: `${process.cwd()}/downloads/cookies.txt`,
       concurrentFragments: 3,
     });
 
@@ -108,7 +108,7 @@ export class Shy {
       output,
       extractAudio: true,
       audioFormat: "mp3",
-      cookies: `${process.cwd()}/cookies.txt`,
+      cookies: `${process.cwd()}/downloads/cookies.txt`,
       concurrentFragments: 3,
     });
 

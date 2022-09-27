@@ -126,7 +126,7 @@ bot.on("text", async (ctx, next) => {
     }
     return;
   } else {
-    if (process.env.COOKIES) await downloadFile(process.env.COOKIES, `${process.cwd()}/cookies.txt`);
+    if (process.env.COOKIES) await downloadFile(process.env.COOKIES, `${process.cwd()}/downloads/cookies.txt`);
     metadata = await shy.getMetadata(link);
   }
 
