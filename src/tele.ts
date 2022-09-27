@@ -1,4 +1,5 @@
 import { systemInfo, progressBar } from "./ext/msg_helper";
+import { downloadFile } from "./ext/fs_helper";
 import { Telegraf, Markup } from "telegraf";
 import { statSync } from "fs";
 import { Shy, DBShy } from "./index";
@@ -44,18 +45,15 @@ async function getMedia(ctx: any, isAudio?: boolean) {
 
       if (error_code >= 0) {
         if (error_code == 0) {
-          await ctx.editMessageCaption(
-            `${data.caption}\nSize: ${byteSize(
-              statSync(`./downloads/${fileName}${format}`).size
-            )}\nThis file will be deleted in 6 hrs`,
-            {
-              message_id: data.message_id,
-              ...Markup.inlineKeyboard([
-                [Markup.button.url("Download", `${DBShy.host}/?d=${fileName}${format}`)],
-                [Markup.button.url("Stream", `${DBShy.host}/?w=${fileName}${format}`)],
-              ]),
-            }
-          );
+          const fileSize: string = byteSize(statSync(`./downloads/${fileName}${format}`).size);
+          await ctx.editMessageCaption(`${data.caption}\nSize: ${fileSize}\nThis file will be deleted in 6 hrs`, {
+            message_id: data.message_id,
+            ...Markup.inlineKeyboard([
+              [Markup.button.callback("TG Download", "dl/tg", fileSize.match(/GB$/i) ? true : false)],
+              [Markup.button.url("Download", `${DBShy.host}/?d=${fileName}${format}`)],
+              [Markup.button.url("Stream", `${DBShy.host}/?w=${fileName}${format}`)],
+            ]),
+          });
         } else if (error_code > 0) {
           try {
             await ctx.editMessageCaption(`Problem during download\n\n${msg}`, {
@@ -130,6 +128,7 @@ bot.on("text", async (ctx, next) => {
     }
     return;
   } else {
+    if (process.env.COOKIES) await downloadFile(process.env.COOKIES, `${process.cwd()}/cookies.txt`);
     metadata = await shy.getMetadata(link);
   }
 

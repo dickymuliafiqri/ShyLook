@@ -50,7 +50,7 @@ export class Shy {
         dumpSingleJson: true,
         youtubeSkipDashManifest: true,
         retries: 3,
-        referer: link,
+        cookies: process.env.COOKIES ? `${process.cwd()}/cookies.txt` : "",
       });
       metadata["duration"] = prettyMs(Number(metadata["duration"] || 0) * 1000);
 
@@ -92,6 +92,7 @@ export class Shy {
       format: `best[height=${quality}]/best[height<=${quality}]/best`,
       recodeVideo: "mp4",
       output,
+      cookies: process.env.COOKIES ? `${process.cwd()}/cookies.txt` : "",
     });
 
     writeLog(subprocess, id);
@@ -106,6 +107,7 @@ export class Shy {
       output,
       extractAudio: true,
       audioFormat: "mp3",
+      cookies: process.env.COOKIES ? `${process.cwd()}/cookies.txt` : "",
     });
 
     writeLog(subprocess, id);

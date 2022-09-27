@@ -1,5 +1,6 @@
-import { unlinkSync } from "fs";
 import { DBShy } from "../index";
+import { createWriteStream, unlinkSync } from "fs";
+import { get } from "https";
 
 /**
  * TODO
@@ -16,6 +17,24 @@ export async function flushFile(filePath: string) {
       console.log(`[DELETE] FAILED: ${filePath} (${e.message})`);
     }
   }, 21600000);
+}
+
+export async function downloadFile(url: string, fileName: string) {
+  const file = createWriteStream(fileName);
+  return await new Promise(function (resolv, reject) {
+    get(url, function (response: any) {
+      response.pipe(file);
+      file.on("finish", function () {
+        file.close(); // close() is async
+        resolv(0);
+      });
+    }).on("error", function (err: any) {
+      // Handle errors
+      unlinkSync(fileName); // Delete the file async. (But we don't check the result)
+      console.error(err);
+      reject(err);
+    });
+  });
 }
 
 export function writeLog(subprocess: any, uid: number | string) {
