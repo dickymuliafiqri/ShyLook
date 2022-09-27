@@ -85,25 +85,27 @@ export class Shy {
    * - Delete canceled or error file/task
    */
 
-  getVideo(link: string, fileName: string, id: number | string, fileId: number) {
+  getVideo(link: string, fileName: string, id: number | string) {
+    const output = `./downloads/${fileName}.mp4`;
     const subprocess = ytdl.exec(link, {
       noCheckCertificate: true,
       format: `best`,
       recodeVideo: "mp4",
-      output: `./downloads/${fileId}/${fileName}.mp4`,
+      output,
       cookies: `${process.cwd()}/cookies.txt`,
       concurrentFragments: 3,
     });
 
     writeLog(subprocess, id);
-    flushFile(`./downloads/${fileName}.mp4`);
+    flushFile(output);
   }
 
-  getAudio(link: string, fileName: string, id: number, fileId: number) {
+  getAudio(link: string, fileName: string, id: number) {
+    const output = `./downloads/${fileName}.mp3`;
     const subprocess = ytdl.exec(link, {
       noCheckCertificate: true,
       format: `bestaudio/worst/best`,
-      output: `./downloads/${fileId}/${fileName}.mp3`,
+      output,
       extractAudio: true,
       audioFormat: "mp3",
       cookies: `${process.cwd()}/cookies.txt`,
@@ -111,7 +113,7 @@ export class Shy {
     });
 
     writeLog(subprocess, id);
-    flushFile(`./downloads/${fileName}.mp3`);
+    flushFile(output);
   }
 }
 

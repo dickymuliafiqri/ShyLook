@@ -1,7 +1,7 @@
 import { systemInfo } from "./ext/msg_helper";
 import { downloadFile } from "./ext/fs_helper";
 import { Telegraf, Markup } from "telegraf";
-import { statSync, rmSync, mkdirSync, rename } from "fs";
+import { statSync } from "fs";
 import { Shy, DBShy } from "./index";
 
 const isurl = require("is-url");
@@ -20,13 +20,11 @@ async function getMedia(ctx: any, isAudio?: boolean) {
   if (data == undefined) await bot.telegram.deleteMessage(ctx.chat.id, ctx.message.message_id);
   let format: string = isAudio ? ".mp3" : ".mp4";
   const fileName: string = `shyLook-${slug(metadata["title"]).substring(0, 190)}`;
-  const fileId = Math.floor(Math.random() * 10000);
 
-  mkdirSync(`${process.cwd()}/downloads/${fileId}`);
   if (isAudio) {
-    shy.getAudio(metadata["webpage_url"], fileName, Number(ctx.from.id), fileId);
+    shy.getAudio(metadata["webpage_url"], fileName, Number(ctx.from.id));
   } else {
-    shy.getVideo(metadata["webpage_url"], fileName, Number(ctx.from.id), fileId);
+    shy.getVideo(metadata["webpage_url"], fileName, Number(ctx.from.id));
   }
 
   const updateProgress = setInterval(async () => {
@@ -46,19 +44,6 @@ async function getMedia(ctx: any, isAudio?: boolean) {
 
       if (error_code >= 0) {
         if (error_code == 0) {
-          await new Promise(function (resolve, reject) {
-            rename(
-              `${process.cwd()}/downloads/${fileId}/${fileName}${format}`,
-              `${process.cwd()}/downloads/${fileName}${format}`,
-              (err) => {
-                if (err) {
-                  console.error(err);
-                  reject(err);
-                }
-                resolve(0);
-              }
-            );
-          });
           const fileSize: string = byteSize(statSync(`./downloads/${fileName}${format}`).size);
           await ctx.editMessageCaption(`${data.caption}\nSize: ${fileSize}\nThis file will be deleted in 6 hrs`, {
             message_id: data.message_id,
@@ -78,10 +63,6 @@ async function getMedia(ctx: any, isAudio?: boolean) {
           }
         }
 
-        rmSync(`${process.cwd()}/downloads/${fileId}`, {
-          recursive: true,
-          force: true,
-        });
         await DBShy.run(`DELETE FROM queue WHERE uid = ?;`, ctx.from?.id);
         clearInterval(updateProgress);
       }
